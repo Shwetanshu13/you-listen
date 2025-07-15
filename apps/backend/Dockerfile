@@ -24,4 +24,4 @@ RUN pnpm --filter backend build
 EXPOSE 4000
 
 # Start backend
-CMD ["pnpm", "--filter", "backend", "start"]
+CMD ["pnpm", "--filter", "backend", "dev"]
