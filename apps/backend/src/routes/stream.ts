@@ -1,7 +1,7 @@
 import express from "express";
 import { getSignedAudioUrl } from "../lib/r2";
 import { db } from "../lib/db";
-import { songs } from "@db/schema";
+import { songs } from "../../../../packages/db/src/schema";
 import { eq } from "drizzle-orm";
 import { verifyUser } from "../middleware/verifyUser";
 

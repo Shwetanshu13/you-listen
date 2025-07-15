@@ -2,7 +2,7 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import { router, protectedProcedure } from "../trpc";
 import { db } from "../lib/db";
-import { users } from "@db/schema";
+import { users } from "../../../../packages/db/src/schema";
 import { eq } from "drizzle-orm";
 // import dotenv from "dotenv";
 

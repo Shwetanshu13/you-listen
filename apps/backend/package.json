@@ -2,10 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/apps/backend/src/index.js",
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "worker": "ts-node src/worker/youtubeWorker.ts"
   },
   "keywords": [],

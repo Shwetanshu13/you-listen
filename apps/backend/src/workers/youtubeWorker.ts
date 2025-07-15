@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import IORedis from "ioredis"; // Required for Redis URL parsing
 import { downloadFromYoutube } from "../lib/downloadFromYoutube";
 import { db } from "../lib/db";
-import { songs, ytSongIds } from "@db/schema";
+import { songs, ytSongIds } from "../../../../packages/db/src/schema";
 import { eq } from "drizzle-orm";
 import { redis } from "src/lib/redis";
 
