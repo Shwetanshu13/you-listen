@@ -22,12 +22,16 @@ export default function AdminUploadForm() {
       if (artist) formData.append("artist", artist);
       formData.append("file", file);
 
-      await axios.post("http://localhost:4000/upload/song", formData, {
-        withCredentials: true, // ✅ Send JWT cookie
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/upload/song`,
+        formData,
+        {
+          withCredentials: true, // ✅ Send JWT cookie
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       toast.success("Upload successful!");
       setTitle("");

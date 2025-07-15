@@ -64,7 +64,7 @@ export default function SongList() {
             title={song.title}
             artist={song.artist || "Unknown"}
             duration={song.duration || "0:00"}
-            fileUrl={`http://localhost:4000/stream/${song.id}`}
+            fileUrl={`${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`}
           />
         ))}
       </div>
