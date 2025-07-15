@@ -26,4 +26,4 @@ RUN apt-get update && \
 EXPOSE 4000
 
 # --- Start backend ---
-CMD ["pnpm", "--filter", "apps/backend", "start"]
+CMD ["pnpm", "--filter", "./apps/backend", "start"]
