@@ -16,13 +16,15 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await axios.post("/api/login", { username, password });
-
-      const user = res.data.user;
+      await axios.post("/api/login", { username, password });
 
       router.push("/"); // Or wherever the protected page is
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 

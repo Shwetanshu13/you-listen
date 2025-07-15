@@ -22,25 +22,23 @@ export default function AdminUploadForm() {
       if (artist) formData.append("artist", artist);
       formData.append("file", file);
 
-      const res = await axios.post(
-        "http://localhost:4000/upload/song",
-        formData,
-        {
-          withCredentials: true, // ✅ Send JWT cookie
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axios.post("http://localhost:4000/upload/song", formData, {
+        withCredentials: true, // ✅ Send JWT cookie
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       toast.success("Upload successful!");
       setTitle("");
       setArtist("");
       setFile(null);
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message || err.message || "Upload failed";
-      toast.error(message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Upload failed");
+      }
     } finally {
       setLoading(false);
     }

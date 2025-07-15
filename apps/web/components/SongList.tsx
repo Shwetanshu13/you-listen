@@ -7,11 +7,8 @@ import SongCard from "@/components/SongCard";
 export default function SongList() {
   const [query, setQuery] = useState("");
 
-  const {
-    data: songs,
-    refetch: refetchSearch,
-    isFetching,
-  } = trpc.songs.searchSongs.useQuery({ query }, { enabled: false });
+  const { refetch: refetchSearch, isFetching } =
+    trpc.songs.searchSongs.useQuery({ query }, { enabled: false });
 
   const { data: allSongs, isLoading: isAllSongsLoading } =
     trpc.songs.getAll.useQuery();

@@ -3,9 +3,9 @@ import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { db } from "../lib/db";
 import { songs } from "@db/schema";
 import { eq, ilike, or } from "drizzle-orm";
-import { deleteFromBucket } from "src/lib/r2";
-import { audioDownloadQueue } from "src/queues/audioQueue";
-import { isAuthenticated } from "src/middleware/isAuthenticated";
+import { deleteFromBucket } from "../lib/r2";
+import { audioDownloadQueue } from "../queues/audioQueue";
+import { isAuthenticated } from "../middleware/isAuthenticated";
 
 export const songsRouter = router({
   getAll: publicProcedure.use(isAuthenticated).query(async () => {

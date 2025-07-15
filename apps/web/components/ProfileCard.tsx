@@ -16,7 +16,7 @@ export default function ProfileCard() {
       });
       toast.success("Logged out");
       router.push("/login");
-    } catch (err) {
+    } catch {
       toast.error("Logout failed");
     }
   };

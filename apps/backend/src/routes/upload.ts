@@ -1,7 +1,7 @@
 // apps/backend/src/routes/upload.ts
 import express from "express";
 import multer from "multer";
-import { db } from "src/lib/db";
+import { db } from "../lib/db";
 import { songs } from "@db/schema";
 import { parseBuffer } from "music-metadata";
 import { verifyAdmin } from "../middleware/verifyAdmin";
