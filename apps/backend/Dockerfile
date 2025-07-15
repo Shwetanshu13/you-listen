@@ -1,29 +1,27 @@
-# Dockerfile
-
-# --- Base Node Image ---
-FROM node:20
-
-# --- Set working directory ---
+# Set working directory
 WORKDIR /app
 
-# --- Install pnpm globally ---
+# Install pnpm
 RUN npm install -g pnpm
 
-# --- Copy all files (monorepo) ---
+# Copy monorepo
 COPY . .
 
-# --- Install only backend and shared packages ---
-RUN pnpm install --filter ./apps/backend...
+# Install backend deps
+RUN pnpm install --filter backend...
 
-# --- Install Python + yt-dlp ---
+# Install yt-dlp
 RUN apt-get update && \
     apt-get install -y python3 python3-pip python3-venv && \
     python3 -m venv /yt-venv && \
     /yt-venv/bin/pip install --upgrade pip && \
     /yt-venv/bin/pip install yt-dlp
 
-# --- Expose backend port ---
+# Build backend
+RUN pnpm --filter backend build
+
+# Expose port
 EXPOSE 4000
 
-# --- Start backend ---
-CMD ["pnpm", "--filter", "./apps/backend", "dev"]
+# Start backend
+CMD ["pnpm", "--filter", "backend", "start"]
