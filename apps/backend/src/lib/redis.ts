@@ -1,11 +1,7 @@
-// apps/backend/src/lib/redis.ts
-import { Redis } from "ioredis";
+import IORedis from "ioredis";
 
-// In production, use full Redis URL (e.g. from Upstash or Railway Redis)
-// In development, fallback to localhost
-export const redis = new Redis(
-  process.env.REDIS_URL || "redis://localhost:6379",
-  {
-    maxRetriesPerRequest: null,
-  }
-);
+export const redis = new IORedis({
+  host: process.env.REDIS_HOST || "localhost",
+  port: parseInt(process.env.REDIS_PORT || "6379"),
+  maxRetriesPerRequest: null,
+});

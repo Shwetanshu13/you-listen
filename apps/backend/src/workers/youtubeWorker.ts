@@ -4,13 +4,14 @@ import { downloadFromYoutube } from "../lib/downloadFromYoutube";
 import { db } from "../lib/db";
 import { songs, ytSongIds } from "@db/schema";
 import { eq } from "drizzle-orm";
+import { redis } from "src/lib/redis";
 
 // Use dotenv in dev
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({ path: "../../.env" });
-}
+// if (process.env.NODE_ENV !== "production") {
+//   require("dotenv").config({ path: "../../.env" });
+// }
 
-const redisConnection = new IORedis(process.env.REDIS_URL!);
+console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
 
 const worker = new Worker(
   "audio-download",
@@ -42,7 +43,7 @@ const worker = new Worker(
     await db.insert(ytSongIds).values({ ytSongId: youtubeId });
   },
   {
-    connection: redisConnection,
+    connection: redis,
   }
 );
 
