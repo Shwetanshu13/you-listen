@@ -17,8 +17,10 @@ RUN pnpm install --filter ./apps/backend...
 
 # --- Install Python + yt-dlp ---
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
-    pip3 install yt-dlp
+    apt-get install -y python3 python3-pip python3-venv && \
+    python3 -m venv /yt-venv && \
+    /yt-venv/bin/pip install --upgrade pip && \
+    /yt-venv/bin/pip install yt-dlp
 
 # --- Expose backend port ---
 EXPOSE 4000
