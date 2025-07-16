@@ -11,9 +11,13 @@ export default function ProfileCard() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/logout", {
-        withCredentials: true,
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
       toast.success("Logged out");
       router.push("/login");
     } catch {

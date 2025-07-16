@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import AudioPlayerWrapper from "@/components/AudioPlayerWrapper";
 import Navbar from "@/components/Navbar";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "You Listen",
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-neutral-900 text-white antialiased">
+        <Toaster />
         <Providers>
           <Navbar />
 

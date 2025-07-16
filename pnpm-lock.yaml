@@ -142,9 +142,6 @@ importers:
       cookie:
         specifier: ^1.0.2
         version: 1.0.2
-      drizzle-orm:
-        specifier: ^0.44.2
-        version: 0.44.2(@electric-sql/pglite@0.3.4)(@types/pg@8.15.4)(pg@8.16.3)
       jose:
         specifier: ^6.0.11
         version: 6.0.11
@@ -157,9 +154,6 @@ importers:
       next:
         specifier: 15.3.5
         version: 15.3.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -194,9 +188,6 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.4
-      '@types/pg':
-        specifier: ^8.15.4
-        version: 8.15.4
       '@types/react':
         specifier: ^19
         version: 19.1.8

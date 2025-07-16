@@ -18,7 +18,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await axios.post("/api/login", { username, password });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
+        { username, password },
+        { withCredentials: true }
+      );
 
       router.push("/"); // Or wherever the protected page is
     } catch (err: unknown) {

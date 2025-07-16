@@ -6,6 +6,7 @@ import { exampleRouter, authRouter, songsRouter } from "./routers";
 import { createContext } from "./context";
 import uploadRoute from "./routes/upload";
 import streamRouter from "./routes/stream";
+import authRoutes from "./routes/auth";
 
 const appRouter = router({
   example: exampleRouter,
@@ -30,6 +31,7 @@ app.use((req, _, next) => {
 });
 
 app.use(express.json());
+app.use("/auth", authRoutes);
 app.use("/upload", uploadRoute);
 app.use(streamRouter);
 
