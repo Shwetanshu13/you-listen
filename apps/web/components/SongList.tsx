@@ -1,32 +1,46 @@
 "use client";
 
-import { trpc } from "@/utils/trpc";
-import { useState, useEffect } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import SongCard from "@/components/SongCard";
+
+type Song = {
+  id: number;
+  title: string;
+  artist: string | null;
+  duration: string | null;
+};
 
 export default function SongList() {
   const [query, setQuery] = useState("");
-
-  const { refetch: refetchSearch, isFetching } =
-    trpc.songs.searchSongs.useQuery({ query }, { enabled: false });
-
-  const { data: allSongs, isLoading: isAllSongsLoading } =
-    trpc.songs.getAll.useQuery();
-
-  const [displayedSongs, setDisplayedSongs] = useState<typeof allSongs>([]);
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+  const [displayedSongs, setDisplayedSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (allSongs) {
-      setDisplayedSongs(allSongs);
-    }
-  }, [allSongs]);
+    const fetchSongs = async () => {
+      try {
+        const res = await axios.get("/api/songs", { withCredentials: true });
+        setAllSongs(res.data);
+        setDisplayedSongs(res.data);
+      } catch (err) {
+        console.error("Failed to fetch songs", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleSearch = async () => {
+    fetchSongs();
+  }, []);
+
+  const handleSearch = () => {
     if (!query.trim()) {
-      setDisplayedSongs(allSongs || []);
+      setDisplayedSongs(allSongs);
     } else {
-      const result = await refetchSearch();
-      setDisplayedSongs(result.data || []);
+      const filtered = allSongs.filter((song) =>
+        song.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setDisplayedSongs(filtered);
     }
   };
 
@@ -48,16 +62,14 @@ export default function SongList() {
         </button>
       </div>
 
-      {(isAllSongsLoading || isFetching) && (
-        <p className="text-gray-400">Loading songs...</p>
-      )}
+      {loading && <p className="text-gray-400">Loading songs...</p>}
 
-      {displayedSongs?.length === 0 && (
+      {displayedSongs.length === 0 && !loading && (
         <p className="text-gray-500">No songs found.</p>
       )}
 
       <div className="space-y-3">
-        {displayedSongs?.map((song) => (
+        {displayedSongs.map((song) => (
           <SongCard
             key={song.id}
             id={song.id}
