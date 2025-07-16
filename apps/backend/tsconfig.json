@@ -13,6 +13,6 @@
     "rootDir": "../../",          // ⬅️ Allow shared code
     "outDir": "dist"
   },
-  "include": ["src", "../../packages/db/src"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

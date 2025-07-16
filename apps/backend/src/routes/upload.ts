@@ -2,7 +2,7 @@
 import express from "express";
 import multer from "multer";
 import { db } from "../lib/db";
-import { songs } from "../../../../packages/db/src/schema";
+import { songs } from "../db/schema";
 import { parseBuffer } from "music-metadata";
 import { verifyAdmin } from "../middleware/verifyAdmin";
 import { uploadToBucket } from "../lib/r2";

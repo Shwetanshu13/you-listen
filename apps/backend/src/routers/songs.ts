@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { db } from "../lib/db";
-import { songs } from "../../../../packages/db/src/schema";
+import { songs } from "../db/schema";
 import { eq, ilike, or } from "drizzle-orm";
 import { deleteFromBucket } from "../lib/r2";
 import { audioDownloadQueue } from "../queues/audioQueue";
