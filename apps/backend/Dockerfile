@@ -21,11 +21,10 @@ COPY . .
 RUN pnpm install
 
 # Build backend
-WORKDIR /app/apps/backend
 RUN pnpm build
 
 # Expose port
 EXPOSE 4000
 
-# Start backend
+# # Start backend
 CMD ["node", "dist/index.js"]
