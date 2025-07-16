@@ -23,12 +23,6 @@ app.use(
     credentials: true,
   })
 );
-app.set("trust proxy", 1);
-
-app.use((req, _, next) => {
-  console.log("🔥 Incoming request:", req.method, req.url);
-  next();
-});
 
 app.use(express.json());
 app.use("/auth", authRoutes);

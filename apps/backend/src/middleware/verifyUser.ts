@@ -12,7 +12,7 @@ export async function verifyUser(
 ) {
   const cookieHeader = req.headers.cookie;
   // console.log(req.headers);
-  console.log(cookieHeader);
+  // console.log(cookieHeader);
 
   if (!cookieHeader) {
     res.status(401).json({ error: "Unauthorized" });
