@@ -1,17 +1,16 @@
 import { Worker } from "bullmq";
-import IORedis from "ioredis"; // Required for Redis URL parsing
 import { downloadFromYoutube } from "../lib/downloadFromYoutube";
 import { db } from "../lib/db";
 import { songs, ytSongIds } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { redis } from "src/lib/redis";
+import { redis } from "../lib/redis";
 
 // Use dotenv in dev
 // if (process.env.NODE_ENV !== "production") {
 //   require("dotenv").config({ path: "../../.env" });
 // }
 
-console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
+// console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
 
 const worker = new Worker(
   "audio-download",

@@ -19,9 +19,4 @@ export const config = {
     bucketName: getEnv("R2_BUCKET_NAME"),
     endpoint: getEnv("R2_ENDPOINT"),
   },
-  redis: {
-    host: getEnv("REDIS_HOST"),
-    port: parseInt(getEnv("REDIS_PORT")),
-  },
-  // Add other configs here (like DB, etc.)
 };
