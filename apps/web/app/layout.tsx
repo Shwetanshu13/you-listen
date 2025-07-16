@@ -21,17 +21,17 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-neutral-900 text-white antialiased">
         <Toaster />
-        <AuthGuard>
-          <Providers>
+        <Providers>
+          <AuthGuard>
             <Navbar />
 
             {/* 👇 Add top + bottom padding to account for fixed Navbar & Player */}
             <main className="pt-16 pb-24 px-4 max-w-5xl min-h-screen mx-auto">
               {children}
             </main>
-          </Providers>
-          <AudioPlayerWrapper />
-        </AuthGuard>
+          </AuthGuard>
+        </Providers>
+        <AudioPlayerWrapper />
       </body>
     </html>
   );
