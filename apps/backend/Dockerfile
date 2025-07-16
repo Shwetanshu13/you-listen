@@ -1,30 +1,33 @@
-# Use full Node.js base (not Alpine) to simplify Python + yt-dlp install
-FROM node:20
+# Base image with Node and Python
+FROM node:20-slim
 
-# Set working directory
+# Set working dir
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
-# Copy monorepo files
-COPY . .
-
-# Install dependencies for backend (and any workspaces it depends on)
-RUN pnpm install --filter ./apps/backend...
-
-# Install Python and yt-dlp
+# Install Python + yt-dlp via venv
 RUN apt-get update && \
     apt-get install -y python3 python3-pip python3-venv && \
     python3 -m venv /yt-venv && \
     /yt-venv/bin/pip install --upgrade pip && \
     /yt-venv/bin/pip install yt-dlp
 
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy everything
+COPY . .
+
+# Install dependencies (entire monorepo)
+RUN pnpm install
+
+# Install TypeScript globally (to ensure tsc is available)
+# RUN pnpm add -g typescript
+
 # Build backend
 WORKDIR /app/apps/backend
 RUN pnpm build
 
-# Expose backend port
+# Expose port
 EXPOSE 4000
 
 # Start backend
