@@ -12,6 +12,12 @@ import { redis } from "../lib/redis";
 
 // console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
 
+if (!redis) {
+  throw new Error(
+    "Redis connection is not configured. Please set REDIS_URL in your environment variables."
+  );
+}
+
 const worker = new Worker(
   "audio-download",
   async (job) => {
