@@ -27,7 +27,7 @@ RUN pnpm install
 RUN pnpm build
 
 # Copy yt-dlp cookies file
-COPY ./cookies/youtube.com.cookies.txt /app/cookies/youtube.com.cookies.txt
+COPY ./src/cookies/youtube.com.cookies.txt /app/cookies/youtube.com.cookies.txt
 
 # Expose port
 EXPOSE 4000
