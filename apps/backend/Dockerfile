@@ -20,9 +20,6 @@ RUN npm install -g pnpm
 # Copy everything
 COPY . .
 
-# Copy yt-dlp cookies file
-COPY ./src/cookies/youtube.com.cookies.txt /app/cookies/youtube.com.cookies.txt
-
 # Install dependencies
 RUN pnpm install
 

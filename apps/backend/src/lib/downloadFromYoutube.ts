@@ -31,9 +31,6 @@ export const downloadFromYoutube = async (youtubeUrl: string) => {
       extractAudio: true,
       audioFormat: "mp3",
       output: outputTemplate,
-      cookies: path.resolve("cookies/youtube.com.cookies.txt"),
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
     });
 
     // Full local path to downloaded file
