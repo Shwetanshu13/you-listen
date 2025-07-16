@@ -26,6 +26,9 @@ RUN pnpm install
 # Build backend
 RUN pnpm build
 
+# Copy yt-dlp cookies file
+COPY ./cookies/youtube.com.cookies.txt /app/cookies/youtube.com.cookies.txt
+
 # Expose port
 EXPOSE 4000
 
