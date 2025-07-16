@@ -24,6 +24,11 @@ app.use(
   })
 );
 
+app.use((req, _, next) => {
+  console.log("🔥 Incoming request:", req.method, req.url);
+  next();
+});
+
 app.use(express.json());
 app.use("/upload", uploadRoute);
 app.use(streamRouter);

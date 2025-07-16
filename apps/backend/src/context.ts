@@ -33,6 +33,6 @@ export const createContext = async ({
       }
     }
   }
-
+  console.log("Context created with user:", user);
   return { user };
 };
