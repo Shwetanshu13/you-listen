@@ -21,6 +21,7 @@ export default function SongList() {
     const fetchSongs = async () => {
       try {
         const res = await axios.get("/api/songs", { withCredentials: true });
+        console.log("Response:", res);
         setAllSongs(res.data);
         setDisplayedSongs(res.data);
       } catch (err) {

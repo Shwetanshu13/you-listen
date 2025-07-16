@@ -16,5 +16,6 @@ export async function GET(req: NextRequest) {
   );
 
   const data = await backendRes.json();
+  console.log(data);
   return NextResponse.json(data[0]?.result?.data?.json ?? []);
 }
