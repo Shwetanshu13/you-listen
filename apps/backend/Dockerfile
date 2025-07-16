@@ -11,6 +11,9 @@ RUN apt-get update && \
     /yt-venv/bin/pip install --upgrade pip && \
     /yt-venv/bin/pip install yt-dlp
 
+# ✅ Add this so youtube-dl-exec can find yt-dlp
+ENV PATH="/yt-venv/bin:$PATH"
+
 # Install pnpm
 RUN npm install -g pnpm
 

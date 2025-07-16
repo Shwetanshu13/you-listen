@@ -5,13 +5,6 @@ import { songs, ytSongIds } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { redis } from "../lib/redis";
 
-// Use dotenv in dev
-// if (process.env.NODE_ENV !== "production") {
-//   require("dotenv").config({ path: "../../.env" });
-// }
-
-// console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
-
 if (!redis) {
   throw new Error(
     "Redis connection is not configured. Please set REDIS_URL in your environment variables."
