@@ -10,7 +10,7 @@
     "paths": {
       "@db/*": ["../../packages/db/src/*"]
     },
-    "rootDir": "../../",          // ⬅️ Allow shared code
+    "rootDir": "src",          // ⬅️ Allow shared code
     "outDir": "dist"
   },
   "include": ["src"],
