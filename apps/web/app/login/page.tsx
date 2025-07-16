@@ -10,10 +10,12 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       await axios.post("/api/login", { username, password });
@@ -25,6 +27,8 @@ export default function LoginPage() {
       } else {
         setError("An unknown error occurred");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,9 +72,10 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full py-2 rounded bg-pink-600 hover:bg-pink-700 transition"
+          className="w-full py-2 rounded bg-pink-600 hover:bg-pink-700 transition cursor-pointer"
+          disabled={isLoading}
         >
-          Login
+          {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
