@@ -25,6 +25,8 @@ router.post("/login", async (req, res) => {
       return;
     }
 
+    console.log(user);
+
     const token = await new SignJWT({
       id: user.id,
       username: user.username,
@@ -44,7 +46,7 @@ router.post("/login", async (req, res) => {
         sameSite: "none",
       })
     );
-
+    console.log("Login successful for user:", user.username);
     res.json({
       message: "Login successful",
       user: { id: user.id, username: user.username, role: user.role },
