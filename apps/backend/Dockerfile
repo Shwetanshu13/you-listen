@@ -20,9 +20,6 @@ COPY . .
 # Install dependencies (entire monorepo)
 RUN pnpm install
 
-# Install TypeScript globally (to ensure tsc is available)
-# RUN pnpm add -g typescript
-
 # Build backend
 WORKDIR /app/apps/backend
 RUN pnpm build

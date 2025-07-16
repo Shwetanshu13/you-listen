@@ -24,6 +24,7 @@
     "bullmq": "^5.56.2",
     "cookie": "^1.0.2",
     "cors": "^2.8.5",
+    "drizzle-orm": "^0.44.2",
     "express": "^5.1.0",
     "ioredis": "^5.6.1",
     "jose": "^6.0.11",
@@ -34,13 +35,17 @@
     "zod": "^3.25.74"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.3.4",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
     "@types/multer": "^2.0.0",
+    "@types/node": "^20.19.4",
     "@types/pg": "^8.15.4",
     "dotenv": "^17.0.1",
+    "drizzle-kit": "^0.31.4",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }
