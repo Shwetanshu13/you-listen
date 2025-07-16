@@ -10,6 +10,7 @@ import { isAuthenticated } from "../middleware/isAuthenticated";
 export const songsRouter = router({
   getAll: publicProcedure.use(isAuthenticated).query(async () => {
     const result = await db.select().from(songs).orderBy(songs.uploadedAt);
+    console.log(result);
     return result;
   }),
 

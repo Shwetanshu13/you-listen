@@ -11,7 +11,7 @@ export async function verifyUser(
   next: NextFunction
 ) {
   const cookieHeader = req.headers.cookie;
-  console.log(req.headers);
+  // console.log(req.headers);
   console.log(cookieHeader);
 
   if (!cookieHeader) {
