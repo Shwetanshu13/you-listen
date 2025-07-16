@@ -16,7 +16,7 @@ const appRouter = router({
 export type AppRouter = typeof appRouter;
 
 const app = express();
-
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN || "http://localhost:3000", // ✅ Dynamically set for prod
