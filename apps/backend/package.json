@@ -7,7 +7,7 @@
     "build": "tsc --project tsconfig.json",
     "start": "concurrently \"node dist/index.js\" \"pnpm worker\"",
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "worker": "node dist/worker/youtubeWorker.js"
+    "worker": "node dist/workers/youtubeWorker.js"
   },
   "keywords": [],
   "author": "",
