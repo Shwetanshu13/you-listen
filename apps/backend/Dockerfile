@@ -27,4 +27,4 @@ RUN pnpm build
 EXPOSE 4000
 
 # # Start backend
-CMD ["node", "dist/index.js"]
+CMD ["pnpm", "start"]
