@@ -34,6 +34,6 @@ export const createContext = async ({
     }
   }
   console.log("Context created with user:", user);
-  console.log("Cookies header received:", req.headers.cookie);
+  console.log("Cookies header received:", req.headers);
   return { user };
 };
