@@ -4,6 +4,8 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: "../../.env" });
 }
 
+console.log(process.env.NODE_ENV);
+
 function getEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -19,4 +21,5 @@ export const config = {
     bucketName: getEnv("R2_BUCKET_NAME"),
     endpoint: getEnv("R2_ENDPOINT"),
   },
+  redisUrl: getEnv("REDIS_URL"),
 };
