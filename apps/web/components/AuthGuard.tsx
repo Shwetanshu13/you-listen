@@ -26,6 +26,9 @@ export default function AuthGuard({ children }: Props) {
     if (!isLoading && !user && !isPublic) {
       router.replace("/login");
     }
+    if (user && pathname === "/login") {
+      router.replace("/");
+    }
   }, [isLoading, user, isPublic, router]);
 
   if (!isPublic && (isLoading || !user)) {
