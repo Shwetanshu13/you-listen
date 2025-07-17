@@ -4,7 +4,7 @@ import { db } from "../lib/db";
 import { songs } from "../db/schema";
 import { eq, ilike, or } from "drizzle-orm";
 import { deleteFromBucket } from "../lib/r2";
-import { audioDownloadQueue } from "../queues/audioQueue";
+import { audioDownloadQueue } from "../queues/audioDownloadQueue";
 import { isAuthenticated } from "../middleware/isAuthenticated";
 
 export const songsRouter = router({
