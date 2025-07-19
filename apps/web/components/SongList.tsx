@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SongCard from "@/components/SongCard";
 import { SearchBar } from "@/components/SearchBar";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -31,7 +31,7 @@ export default function SongList() {
     }
   };
 
-  const searchSongs = async () => {
+  const searchSongs = useCallback(async () => {
     try {
       setIsSearching(true);
       const { data } = await axiosInstance.get("/songs/search", {
@@ -43,7 +43,7 @@ export default function SongList() {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [debouncedQuery]);
 
   useEffect(() => {
     if (debouncedQuery.trim() === "") {
@@ -51,7 +51,7 @@ export default function SongList() {
     } else {
       searchSongs();
     }
-  }, [debouncedQuery]);
+  }, [debouncedQuery, searchSongs]);
 
   const handleSearch = () => {
     if (query.trim() === "") fetchAllSongs();

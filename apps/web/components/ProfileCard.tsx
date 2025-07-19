@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function ProfileCard() {
   const router = useRouter();
@@ -13,17 +13,17 @@ export default function ProfileCard() {
   );
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get("/auth/me");
       setUser(data);
-    } catch (error) {
+    } catch {
       setUser(null);
       router.push("/login");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -37,7 +37,7 @@ export default function ProfileCard() {
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
   if (loading)
     return (

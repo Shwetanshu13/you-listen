@@ -17,7 +17,11 @@ export default function AuthGuard({ children }: Props) {
   const router = useRouter();
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    username: string;
+    role: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +29,7 @@ export default function AuthGuard({ children }: Props) {
       try {
         const res = await axios.get("/auth/me");
         setUser(res.data);
-      } catch (err) {
+      } catch {
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -33,7 +37,7 @@ export default function AuthGuard({ children }: Props) {
     };
 
     checkAuth();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isLoading && !user && !isPublic) {
@@ -42,7 +46,7 @@ export default function AuthGuard({ children }: Props) {
     if (user && pathname === "/login") {
       router.replace("/");
     }
-  }, [isLoading, user, isPublic, router]);
+  }, [isLoading, user, isPublic, router, pathname]);
 
   if (!isPublic && (isLoading || !user)) {
     return (

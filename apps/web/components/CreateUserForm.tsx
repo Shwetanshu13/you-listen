@@ -29,8 +29,9 @@ export default function CreateUserForm() {
       setUsername("");
       setPassword("");
       setRole("user");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to create user");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to create user");
     } finally {
       setLoading(false);
     }

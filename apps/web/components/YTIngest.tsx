@@ -31,8 +31,9 @@ export default function YouTubeIngestForm() {
       setTitle("");
       setArtist("");
       router.refresh();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Ingest failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Ingest failed");
     } finally {
       setIsLoading(false);
     }
