@@ -22,7 +22,7 @@ export default function SongList() {
 
   const fetchAllSongs = async () => {
     try {
-      const { data } = await axiosInstance.get("/songs");
+      const { data } = await axiosInstance.get("/songs/all");
       setDisplayedSongs(data);
     } catch (err) {
       console.error("Failed to fetch songs", err);

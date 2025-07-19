@@ -18,7 +18,7 @@ export default function RequireAdminAuth({
       try {
         const { data } = await axiosInstance.get("/auth/me");
         if (data.role !== "admin") {
-          router.replace("/login");
+          router.replace("/");
         } else {
           setUser(data);
         }

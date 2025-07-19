@@ -21,7 +21,7 @@ export default function YouTubeIngestForm() {
 
     setIsLoading(true);
     try {
-      await axiosInstance.post("/songs/yt-ingest", {
+      await axiosInstance.post("/songs/ingest", {
         youtubeUrl,
         title,
         artist,
