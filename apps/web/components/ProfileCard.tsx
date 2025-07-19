@@ -1,8 +1,9 @@
+// components/ProfileCard.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/utils/trpc"; // 👈 uses tRPC hook
+import { trpc } from "@/utils/trpc";
 import axios from "axios";
 
 export default function ProfileCard() {
@@ -14,9 +15,7 @@ export default function ProfileCard() {
       await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
       toast.success("Logged out");
       router.push("/login");
@@ -25,31 +24,34 @@ export default function ProfileCard() {
     }
   };
 
-  // Redirect if unauthenticated
-  if (!user && !isLoading) {
+  if (isLoading)
+    return (
+      <div className="text-white p-6">
+        <p className="animate-pulse text-neutral-400">Loading profile...</p>
+      </div>
+    );
+
+  if (error || !user) {
     router.push("/login");
     return null;
   }
 
-  if (isLoading) return <p className="text-white">Loading profile...</p>;
-  if (error) return <p className="text-red-500">Error loading user</p>;
-
   return (
-    <div className="bg-neutral-800 text-white p-6 rounded-md w-full max-w-md shadow-lg space-y-4">
-      <h2 className="text-xl font-bold">Profile</h2>
+    <div className="bg-neutral-900 text-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4 mx-auto mt-10 border border-neutral-700">
+      <h2 className="text-2xl font-semibold">👤 Profile</h2>
 
-      <div className="space-y-2">
+      <div className="space-y-2 text-sm">
         <p>
-          <span className="font-semibold">Username:</span> {user?.username}
+          <span className="text-neutral-400">Username:</span> {user.username}
         </p>
         <p>
-          <span className="font-semibold">Role:</span> {user?.role}
+          <span className="text-neutral-400">Role:</span> {user.role}
         </p>
       </div>
 
       <button
         onClick={handleLogout}
-        className="bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded text-white"
+        className="bg-pink-600 hover:bg-pink-700 transition px-4 py-2 rounded-md font-medium text-sm"
       >
         Logout
       </button>

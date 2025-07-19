@@ -1,14 +1,20 @@
 "use client";
 
-import { trpc } from "@/utils/trpc";
 import { useState, useEffect } from "react";
+import { trpc } from "@/utils/trpc";
 import SongCard from "@/components/SongCard";
+import { SearchBar } from "@/components/SearchBar";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function SongList() {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
 
   const { refetch: refetchSearch, isFetching } =
-    trpc.songs.searchSongs.useQuery({ query }, { enabled: false });
+    trpc.songs.searchSongs.useQuery(
+      { query: debouncedQuery },
+      { enabled: false }
+    );
 
   const { data: allSongs, isLoading: isAllSongsLoading } =
     trpc.songs.getAll.useQuery();
@@ -16,13 +22,15 @@ export default function SongList() {
   const [displayedSongs, setDisplayedSongs] = useState<typeof allSongs>([]);
 
   useEffect(() => {
-    if (allSongs) {
-      setDisplayedSongs(allSongs);
+    if (query.trim() === "") {
+      setDisplayedSongs(allSongs || []);
+    } else {
+      handleSearch();
     }
-  }, [allSongs]);
+  }, [debouncedQuery]);
 
   const handleSearch = async () => {
-    if (!query.trim()) {
+    if (!debouncedQuery.trim()) {
       setDisplayedSongs(allSongs || []);
     } else {
       const result = await refetchSearch();
@@ -32,27 +40,13 @@ export default function SongList() {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex gap-2 items-center">
-        <input
-          type="text"
-          placeholder="Search songs..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="px-3 py-2 rounded bg-neutral-800 text-white w-full"
-        />
-        <button
-          onClick={handleSearch}
-          className="bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded text-white"
-        >
-          Search
-        </button>
-      </div>
+      <SearchBar query={query} onChange={setQuery} onSearch={handleSearch} />
 
       {(isAllSongsLoading || isFetching) && (
         <p className="text-gray-400">Loading songs...</p>
       )}
 
-      {displayedSongs?.length === 0 && (
+      {displayedSongs?.length === 0 && !isFetching && (
         <p className="text-gray-500">No songs found.</p>
       )}
 

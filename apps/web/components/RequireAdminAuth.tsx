@@ -16,9 +16,10 @@ export default function RequireAdminAuth({
     if (!isLoading && (!user || user.role !== "admin")) {
       router.replace("/login");
     }
-  }, [user, isLoading, router]);
+  }, [isLoading, user, router]);
 
-  if (isLoading || !user || user.role !== "admin") return null;
+  if (isLoading) return <div>Loading...</div>; // replace with your loader
+  if (!user || user.role !== "admin") return null;
 
   return <>{children}</>;
 }

@@ -1,3 +1,4 @@
+// components/SongCard.tsx
 "use client";
 
 import { Play, Pause } from "lucide-react";
@@ -26,10 +27,8 @@ export default function SongCard({
 
   const handlePlay = () => {
     if (isCurrent) {
-      // Toggle play/pause if already selected
       setIsPlaying(!isPlaying);
     } else {
-      // Set new song and auto-play
       setCurrentSong({ id, title, artist, duration, fileUrl });
       setIsPlaying(true);
     }
@@ -37,19 +36,28 @@ export default function SongCard({
 
   return (
     <div
-      className={cn(
-        "flex justify-between items-center p-4 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition cursor-pointer",
-        isCurrent && "bg-pink-600"
-      )}
       onClick={handlePlay}
+      className={cn(
+        "flex items-center justify-between px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition cursor-pointer group",
+        isCurrent && "bg-pink-600 hover:bg-pink-500"
+      )}
     >
-      <div>
-        <p className="text-white font-semibold">{title}</p>
-        <p className="text-sm text-gray-400">{artist || "Unknown Artist"}</p>
+      <div className="flex flex-col">
+        <span className="text-white font-medium">{title}</span>
+        <span className="text-sm text-gray-400">
+          {artist || "Unknown Artist"}
+        </span>
       </div>
-      <div className="flex items-center gap-4">
+
+      <div className="flex items-center gap-3">
         <span className="text-xs text-gray-300">{duration || "0:00"}</span>
-        {isCurrent && isPlaying ? <Pause size={20} /> : <Play size={20} />}
+        <button>
+          {isCurrent && isPlaying ? (
+            <Pause size={20} className="text-white" />
+          ) : (
+            <Play size={20} className="text-white" />
+          )}
+        </button>
       </div>
     </div>
   );
