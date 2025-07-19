@@ -7,7 +7,7 @@ import { verifyUser } from "../middleware/verifyUser";
 
 const router = express.Router();
 
-router.get("/stream/:id", verifyUser, async (req, res) => {
+router.get("/:id", verifyUser, async (req, res) => {
   const songId = parseInt(req.params.id);
 
   if (isNaN(songId)) {
