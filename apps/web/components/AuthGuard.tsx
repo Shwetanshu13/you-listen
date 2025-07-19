@@ -2,8 +2,8 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
-import { trpc } from "@/utils/trpc";
+import { useEffect, useState } from "react";
+import axios from "@/utils/axios";
 import React from "react";
 
 const PUBLIC_ROUTES = ["/login", "/landing"];
@@ -17,10 +17,23 @@ export default function AuthGuard({ children }: Props) {
   const router = useRouter();
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
-  const { data: user, isLoading } = trpc.auth.me.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await axios.get("/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !user && !isPublic) {

@@ -1,52 +1,72 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { trpc } from "@/utils/trpc";
+import { useEffect, useState } from "react";
 import SongCard from "@/components/SongCard";
 import { SearchBar } from "@/components/SearchBar";
 import { useDebounce } from "@/hooks/useDebounce";
+import axiosInstance from "@/utils/axios";
+
+interface Song {
+  id: number;
+  title: string;
+  artist?: string;
+  duration?: string;
+}
 
 export default function SongList() {
   const [query, setQuery] = useState("");
+  const [displayedSongs, setDisplayedSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
 
-  const { refetch: refetchSearch, isFetching } =
-    trpc.songs.searchSongs.useQuery(
-      { query: debouncedQuery },
-      { enabled: false }
-    );
+  const fetchAllSongs = async () => {
+    try {
+      const { data } = await axiosInstance.get("/songs");
+      setDisplayedSongs(data);
+    } catch (err) {
+      console.error("Failed to fetch songs", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const { data: allSongs, isLoading: isAllSongsLoading } =
-    trpc.songs.getAll.useQuery();
-
-  const [displayedSongs, setDisplayedSongs] = useState<typeof allSongs>([]);
+  const searchSongs = async () => {
+    try {
+      setIsSearching(true);
+      const { data } = await axiosInstance.get("/songs/search", {
+        params: { query: debouncedQuery },
+      });
+      setDisplayedSongs(data);
+    } catch (err) {
+      console.error("Search failed", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
-    if (query.trim() === "") {
-      setDisplayedSongs(allSongs || []);
+    if (debouncedQuery.trim() === "") {
+      fetchAllSongs();
     } else {
-      handleSearch();
+      searchSongs();
     }
   }, [debouncedQuery]);
 
-  const handleSearch = async () => {
-    if (!debouncedQuery.trim()) {
-      setDisplayedSongs(allSongs || []);
-    } else {
-      const result = await refetchSearch();
-      setDisplayedSongs(result.data || []);
-    }
+  const handleSearch = () => {
+    if (query.trim() === "") fetchAllSongs();
+    else searchSongs();
   };
 
   return (
     <div className="p-4 space-y-6">
       <SearchBar query={query} onChange={setQuery} onSearch={handleSearch} />
 
-      {(isAllSongsLoading || isFetching) && (
+      {(isLoading || isSearching) && (
         <p className="text-gray-400">Loading songs...</p>
       )}
 
-      {displayedSongs?.length === 0 && !isFetching && (
+      {displayedSongs?.length === 0 && !isSearching && (
         <p className="text-gray-500">No songs found.</p>
       )}
 

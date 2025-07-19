@@ -3,35 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/utils/trpc";
+import axiosInstance from "@/utils/axios";
 
 export default function YouTubeIngestForm() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const ytIngestMutation = trpc.songs.ytIngestSong.useMutation({
-    onSuccess: () => {
-      toast.success("Upload queued successfully");
-      setYoutubeUrl("");
-      setTitle("");
-      setArtist("");
-      router.refresh();
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!youtubeUrl || !title || !artist) {
       toast.error("All fields are required");
       return;
     }
 
-    ytIngestMutation.mutate({ youtubeUrl, title, artist });
+    setIsLoading(true);
+    try {
+      await axiosInstance.post("/songs/yt-ingest", {
+        youtubeUrl,
+        title,
+        artist,
+      });
+      toast.success("Upload queued successfully");
+      setYoutubeUrl("");
+      setTitle("");
+      setArtist("");
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Ingest failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,10 +71,10 @@ export default function YouTubeIngestForm() {
         </div>
         <button
           type="submit"
-          disabled={ytIngestMutation.isPending}
+          disabled={isLoading}
           className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded"
         >
-          {ytIngestMutation.isPending ? "Submitting..." : "Upload"}
+          {isLoading ? "Submitting..." : "Upload"}
         </button>
       </form>
     </div>

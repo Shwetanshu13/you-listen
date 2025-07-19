@@ -1,45 +1,30 @@
+// index.ts
 import express from "express";
 import cors from "cors";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { router } from "./trpc";
-import { exampleRouter, authRouter, songsRouter } from "./routers";
-import { createContext } from "./context";
-import uploadRoute from "./routes/upload";
-import streamRouter from "./routes/stream";
-import authRoutes from "./routes/auth";
-
-const appRouter = router({
-  example: exampleRouter,
-  auth: authRouter,
-  songs: songsRouter,
-});
-
-export type AppRouter = typeof appRouter;
+import uploadRoute from "./routes/upload.route";
+import streamRouter from "./routes/stream.route";
+import authRoutes from "./routes/auth.route";
+import songsRoutes from "./routes/songs.route";
 
 const app = express();
+
+// CORS setup
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000", // ✅ Dynamically set for prod
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
     credentials: true,
   })
 );
 
 app.use(express.json());
+
+// Route Mounting
 app.use("/auth", authRoutes);
 app.use("/upload", uploadRoute);
-app.use(streamRouter);
+app.use("/songs", songsRoutes);
+app.use("/stream", streamRouter);
 
-app.use(
-  "/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  })
-);
-
-// ✅ Use env PORT or fallback to 4000
 const PORT = process.env.PORT || 4000;
-
 app.listen(PORT, () => {
-  console.log(`tRPC backend running on http://localhost:${PORT}`);
+  console.log(`🚀 Express backend running on http://localhost:${PORT}`);
 });

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { trpc } from "@/utils/trpc";
+import { useEffect, useState } from "react";
+import axiosInstance from "@/utils/axios";
 
 export default function RequireAdminAuth({
   children,
@@ -10,15 +10,29 @@ export default function RequireAdminAuth({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
-      router.replace("/login");
-    }
-  }, [isLoading, user, router]);
+    const checkAdmin = async () => {
+      try {
+        const { data } = await axiosInstance.get("/auth/me");
+        if (data.role !== "admin") {
+          router.replace("/login");
+        } else {
+          setUser(data);
+        }
+      } catch {
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (isLoading) return <div>Loading...</div>; // replace with your loader
+    checkAdmin();
+  }, [router]);
+
+  if (loading) return <div>Loading...</div>;
   if (!user || user.role !== "admin") return null;
 
   return <>{children}</>;

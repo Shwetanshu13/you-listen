@@ -1,10 +1,16 @@
+// routes/auth.route.ts
 import express from "express";
+import bcrypt from "bcrypt";
 import { SignJWT } from "jose";
+import { serialize } from "cookie";
+
 import { db } from "../lib/db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcrypt";
-import { serialize } from "cookie";
+
+import { createUser, getMe } from "../controllers/auth.controller";
+import { verifyUser } from "../middleware/verifyUser";
+import { verifyAdmin } from "../middleware/verifyAdmin";
 
 const router = express.Router();
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
@@ -20,12 +26,11 @@ router.post("/login", async (req, res) => {
       .where(eq(users.username, username));
 
     const user = userList[0];
+
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
-
-    console.log(user);
 
     const token = await new SignJWT({
       id: user.id,
@@ -40,19 +45,19 @@ router.post("/login", async (req, res) => {
       "Set-Cookie",
       serialize("token", token, {
         httpOnly: true,
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
         secure: true,
         sameSite: "none",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
       })
     );
-    console.log("Login successful for user:", user.username);
+
     res.json({
       message: "Login successful",
       user: { id: user.id, username: user.username, role: user.role },
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -65,11 +70,17 @@ router.post("/logout", (_, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      expires: new Date(0),
       path: "/",
+      expires: new Date(0),
     })
   );
   res.json({ message: "Logged out" });
 });
+
+// POST /auth/create-user — only admin
+router.post("/create-user", verifyAdmin, createUser);
+
+// GET /auth/me — any logged-in user
+router.get("/me", verifyUser, getMe);
 
 export default router;
