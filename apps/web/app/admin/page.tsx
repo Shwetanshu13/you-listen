@@ -6,7 +6,7 @@ import RequireAdminAuth from "@/components/RequireAdminAuth";
 import AdminUploadForm from "@/components/AdminUploadForm";
 import CreateUserForm from "@/components/CreateUserForm";
 import YouTubeIngestForm from "@/components/YTIngest";
-import { Upload, Youtube, UserPlus, Shield, Music } from "lucide-react";
+import { Upload, Youtube, UserPlus, Shield } from "lucide-react";
 
 const tabs = [
   { name: "Upload Song", key: "upload", icon: Upload },
