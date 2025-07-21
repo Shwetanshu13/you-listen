@@ -11,7 +11,7 @@
 - ⬆️ Admin-only song uploads (MP3 or via YouTube)
 - 🔍 Search across uploaded songs
 - 📃 Playback history, duration tracking
-- 🧠 AI wrapper for YouTube download
+- 🧠 yt-dlp wrapper for YouTube download
 - 🔊 Spacebar to play/pause support
 - 🗂️ Monorepo with shared DB across frontend/backend
 - ☁️ Cloudflare R2 for audio storage (with signed URLs)
