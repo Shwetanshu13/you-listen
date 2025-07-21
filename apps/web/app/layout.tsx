@@ -5,7 +5,6 @@ import AudioPlayerWrapper from "@/components/AudioPlayerWrapper";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "sonner";
 import AuthGuard from "@/components/AuthGuard";
-import MobileBlocker from "@/components/MobileBlocker";
 
 export const metadata: Metadata = {
   title: "You Listen",
@@ -32,21 +31,19 @@ export default function RootLayout({
             },
           }}
         />
-        <MobileBlocker>
-          <AuthGuard>
-            <Navbar />
+        <AuthGuard>
+          <Navbar />
 
-            {/* Main content with proper spacing */}
-            <main className="pt-24 pb-32 px-6 max-w-7xl min-h-screen mx-auto">
-              <div className="relative">
-                {/* Background decoration */}
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl -z-10" />
-                {children}
-              </div>
-            </main>
-          </AuthGuard>
-          <AudioPlayerWrapper />
-        </MobileBlocker>
+          {/* Main content with proper spacing */}
+          <main className="pt-24 pb-32 px-6 max-w-7xl min-h-screen mx-auto">
+            <div className="relative">
+              {/* Background decoration */}
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl -z-10" />
+              {children}
+            </div>
+          </main>
+        </AuthGuard>
+        <AudioPlayerWrapper />
       </body>
     </html>
   );
