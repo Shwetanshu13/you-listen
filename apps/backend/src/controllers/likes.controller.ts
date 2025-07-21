@@ -8,6 +8,15 @@ interface AuthenticatedRequest extends Request {
   user?: { id: number; username: string; role: string };
 }
 
+// Helper function to handle v2 table missing errors
+const handleV2NotAvailable = (res: Response, error: any) => {
+  if (error.code === "42P01") {
+    // PostgreSQL error code for "relation does not exist"
+    return res.json({ liked: false, message: "Likes feature not available" });
+  }
+  throw error;
+};
+
 export const toggleSongLike = async (
   req: AuthenticatedRequest,
   res: Response
@@ -63,7 +72,7 @@ export const toggleSongLike = async (
 export const getUserLikedSongs = async (
   req: AuthenticatedRequest,
   res: Response
-) => {
+): Promise<void> => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -87,8 +96,13 @@ export const getUserLikedSongs = async (
       .orderBy(desc(songLikes.likedAt));
 
     res.json(likedSongs);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching liked songs:", error);
+    if (error.code === "42P01") {
+      // Table doesn't exist, return empty array
+      res.json([]);
+      return;
+    }
     res.status(500).json({ error: "Failed to fetch liked songs" });
   }
 };

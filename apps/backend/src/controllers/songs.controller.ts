@@ -17,26 +17,37 @@ export const getAllSongs = async (req: AuthenticatedRequest, res: Response) => {
     let result;
 
     if (userId) {
-      // Include like status for authenticated users
-      result = await db
-        .select({
-          id: songs.id,
-          title: songs.title,
-          artist: songs.artist,
-          duration: songs.duration,
-          fileUrl: songs.fileUrl,
-          uploadedAt: songs.uploadedAt,
-          isLiked:
-            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-              "isLiked"
-            ),
-        })
-        .from(songs)
-        .leftJoin(
-          songLikes,
-          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-        )
-        .orderBy(songs.uploadedAt);
+      try {
+        // Try to include like status for authenticated users (v2 feature)
+        result = await db
+          .select({
+            id: songs.id,
+            title: songs.title,
+            artist: songs.artist,
+            duration: songs.duration,
+            fileUrl: songs.fileUrl,
+            uploadedAt: songs.uploadedAt,
+            isLiked:
+              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+                "isLiked"
+              ),
+          })
+          .from(songs)
+          .leftJoin(
+            songLikes,
+            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+          )
+          .orderBy(songs.uploadedAt);
+      } catch (error: any) {
+        // Fallback to basic query if v2 tables don't exist
+        if (error.code === "42P01") {
+          // PostgreSQL error code for "relation does not exist"
+          console.log("V2 tables not found, falling back to basic query");
+          result = await db.select().from(songs).orderBy(songs.uploadedAt);
+        } else {
+          throw error;
+        }
+      }
     } else {
       // Basic song data for unauthenticated users
       result = await db.select().from(songs).orderBy(songs.uploadedAt);
@@ -65,26 +76,36 @@ export const getSongDetail = async (
     let result;
 
     if (userId) {
-      // Include like status for authenticated users
-      result = await db
-        .select({
-          id: songs.id,
-          title: songs.title,
-          artist: songs.artist,
-          duration: songs.duration,
-          fileUrl: songs.fileUrl,
-          uploadedAt: songs.uploadedAt,
-          isLiked:
-            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-              "isLiked"
-            ),
-        })
-        .from(songs)
-        .leftJoin(
-          songLikes,
-          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-        )
-        .where(eq(songs.id, songId));
+      try {
+        // Try to include like status for authenticated users (v2 feature)
+        result = await db
+          .select({
+            id: songs.id,
+            title: songs.title,
+            artist: songs.artist,
+            duration: songs.duration,
+            fileUrl: songs.fileUrl,
+            uploadedAt: songs.uploadedAt,
+            isLiked:
+              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+                "isLiked"
+              ),
+          })
+          .from(songs)
+          .leftJoin(
+            songLikes,
+            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+          )
+          .where(eq(songs.id, songId));
+      } catch (error: any) {
+        // Fallback to basic query if v2 tables don't exist
+        if (error.code === "42P01") {
+          console.log("V2 tables not found, falling back to basic query");
+          result = await db.select().from(songs).where(eq(songs.id, songId));
+        } else {
+          throw error;
+        }
+      }
     } else {
       result = await db.select().from(songs).where(eq(songs.id, songId));
     }
@@ -114,26 +135,39 @@ export const searchSongs = async (req: AuthenticatedRequest, res: Response) => {
     let result;
 
     if (userId) {
-      // Include like status for authenticated users
-      result = await db
-        .select({
-          id: songs.id,
-          title: songs.title,
-          artist: songs.artist,
-          duration: songs.duration,
-          fileUrl: songs.fileUrl,
-          uploadedAt: songs.uploadedAt,
-          isLiked:
-            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-              "isLiked"
-            ),
-        })
-        .from(songs)
-        .leftJoin(
-          songLikes,
-          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-        )
-        .where(ilike(songs.title, `%${query}%`));
+      try {
+        // Try to include like status for authenticated users (v2 feature)
+        result = await db
+          .select({
+            id: songs.id,
+            title: songs.title,
+            artist: songs.artist,
+            duration: songs.duration,
+            fileUrl: songs.fileUrl,
+            uploadedAt: songs.uploadedAt,
+            isLiked:
+              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+                "isLiked"
+              ),
+          })
+          .from(songs)
+          .leftJoin(
+            songLikes,
+            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+          )
+          .where(ilike(songs.title, `%${query}%`));
+      } catch (error: any) {
+        // Fallback to basic query if v2 tables don't exist
+        if (error.code === "42P01") {
+          console.log("V2 tables not found, falling back to basic query");
+          result = await db
+            .select()
+            .from(songs)
+            .where(ilike(songs.title, `%${query}%`));
+        } else {
+          throw error;
+        }
+      }
     } else {
       result = await db
         .select()
@@ -164,31 +198,49 @@ export const searchByTitleOrArtist = async (
     let result;
 
     if (userId) {
-      // Include like status for authenticated users
-      result = await db
-        .select({
-          id: songs.id,
-          title: songs.title,
-          artist: songs.artist,
-          duration: songs.duration,
-          fileUrl: songs.fileUrl,
-          uploadedAt: songs.uploadedAt,
-          isLiked:
-            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-              "isLiked"
-            ),
-        })
-        .from(songs)
-        .leftJoin(
-          songLikes,
-          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-        )
-        .where(
-          or(
-            ilike(songs.title, `%${query}%`),
-            ilike(songs.artist, `%${query}%`)
+      try {
+        // Try to include like status for authenticated users (v2 feature)
+        result = await db
+          .select({
+            id: songs.id,
+            title: songs.title,
+            artist: songs.artist,
+            duration: songs.duration,
+            fileUrl: songs.fileUrl,
+            uploadedAt: songs.uploadedAt,
+            isLiked:
+              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+                "isLiked"
+              ),
+          })
+          .from(songs)
+          .leftJoin(
+            songLikes,
+            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
           )
-        );
+          .where(
+            or(
+              ilike(songs.title, `%${query}%`),
+              ilike(songs.artist, `%${query}%`)
+            )
+          );
+      } catch (error: any) {
+        // Fallback to basic query if v2 tables don't exist
+        if (error.code === "42P01") {
+          console.log("V2 tables not found, falling back to basic query");
+          result = await db
+            .select()
+            .from(songs)
+            .where(
+              or(
+                ilike(songs.title, `%${query}%`),
+                ilike(songs.artist, `%${query}%`)
+              )
+            );
+        } else {
+          throw error;
+        }
+      }
     } else {
       result = await db
         .select()

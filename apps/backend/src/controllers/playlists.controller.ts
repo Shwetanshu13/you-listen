@@ -8,6 +8,18 @@ interface AuthenticatedRequest extends Request {
   user?: { id: number; username: string; role: string };
 }
 
+// Helper function to handle v2 table missing errors
+const handleV2NotAvailable = (res: Response, error: any) => {
+  if (error.code === "42P01") {
+    // PostgreSQL error code for "relation does not exist"
+    return res.status(503).json({
+      error: "Playlists feature not available",
+      message: "Database migration required",
+    });
+  }
+  throw error;
+};
+
 export const createPlaylist = async (
   req: AuthenticatedRequest,
   res: Response
@@ -37,16 +49,20 @@ export const createPlaylist = async (
       .returning();
 
     res.status(201).json(playlist);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating playlist:", error);
-    res.status(500).json({ error: "Failed to create playlist" });
+    try {
+      handleV2NotAvailable(res, error);
+    } catch {
+      res.status(500).json({ error: "Failed to create playlist" });
+    }
   }
 };
 
 export const getUserPlaylists = async (
   req: AuthenticatedRequest,
   res: Response
-) => {
+): Promise<void> => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -62,8 +78,13 @@ export const getUserPlaylists = async (
       .orderBy(desc(playlists.updatedAt));
 
     res.json(userPlaylists);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching playlists:", error);
+    if (error.code === "42P01") {
+      // Table doesn't exist, return empty array
+      res.json([]);
+      return;
+    }
     res.status(500).json({ error: "Failed to fetch playlists" });
   }
 };

@@ -111,7 +111,7 @@ export const getUserPlayHistory = async (
 export const getRecentlyPlayed = async (
   req: AuthenticatedRequest,
   res: Response
-) => {
+): Promise<void> => {
   const userId = req.user?.id;
   const limit = parseInt(req.query.limit as string) || 10;
 
@@ -152,8 +152,13 @@ export const getRecentlyPlayed = async (
       .limit(limit);
 
     res.json(recentlyPlayed);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching recently played songs:", error);
+    if (error.code === "42P01") {
+      // Table doesn't exist, return empty array
+      res.json([]);
+      return;
+    }
     res.status(500).json({ error: "Failed to fetch recently played songs" });
   }
 };
@@ -161,7 +166,7 @@ export const getRecentlyPlayed = async (
 export const getMostPlayed = async (
   req: AuthenticatedRequest,
   res: Response
-) => {
+): Promise<void> => {
   const userId = req.user?.id;
   const limit = parseInt(req.query.limit as string) || 10;
   const timeframe = (req.query.timeframe as string) || "all"; // 'week', 'month', 'year', 'all'
@@ -222,8 +227,13 @@ export const getMostPlayed = async (
       .limit(limit);
 
     res.json(mostPlayed);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching most played songs:", error);
+    if (error.code === "42P01") {
+      // Table doesn't exist, return empty array
+      res.json([]);
+      return;
+    }
     res.status(500).json({ error: "Failed to fetch most played songs" });
   }
 };
