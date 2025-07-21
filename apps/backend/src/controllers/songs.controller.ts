@@ -11,6 +11,29 @@ export const getAllSongs = async (_: Request, res: Response) => {
   res.json(result);
 };
 
+export const getSongDetail = async (req: Request, res: Response) => {
+  const songId = parseInt(req.params.songId);
+
+  if (isNaN(songId)) {
+    res.status(400).json({ error: "Invalid song ID" });
+    return;
+  }
+
+  try {
+    const result = await db.select().from(songs).where(eq(songs.id, songId));
+
+    if (result.length === 0) {
+      res.status(404).json({ error: "Song not found" });
+      return;
+    }
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error("Error fetching song details:", error);
+    res.status(500).json({ error: "Failed to fetch song details" });
+  }
+};
+
 export const searchSongs = async (req: Request, res: Response) => {
   const query = req.params.q;
   if (!query || query.length < 2) {

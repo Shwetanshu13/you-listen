@@ -2,6 +2,7 @@
 import express from "express";
 import {
   getAllSongs,
+  getSongDetail,
   searchSongs,
   searchByTitleOrArtist,
   ingestYouTubeSong,
@@ -13,6 +14,7 @@ import { verifyAdmin } from "../middleware/verifyAdmin";
 const router = express.Router();
 
 router.get("/all", verifyUser, getAllSongs);
+router.get("/:songId/getDetail", verifyUser, getSongDetail);
 router.get("/search/:q", verifyUser, searchSongs); // GET /songs/search/despacito
 router.post("/search", verifyUser, searchByTitleOrArtist); // POST { query: "..." }
 
