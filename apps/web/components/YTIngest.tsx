@@ -40,42 +40,78 @@ export default function YouTubeIngestForm() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-neutral-900 rounded-xl shadow text-white">
-      <h2 className="text-xl font-semibold mb-4">YouTube Song Upload</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label>YouTube URL</label>
-          <input
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            className="w-full p-2 bg-neutral-800 rounded"
-            required
-          />
+    <div className="space-y-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+          <span className="text-white font-bold text-lg">YT</span>
         </div>
         <div>
-          <label>Title</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 bg-neutral-800 rounded"
-            required
-          />
+          <h2 className="text-2xl font-semibold text-white">
+            YouTube Song Ingest
+          </h2>
+          <p className="text-gray-400">Import songs directly from YouTube</p>
         </div>
-        <div>
-          <label>Artist</label>
-          <input
-            value={artist}
-            onChange={(e) => setArtist(e.target.value)}
-            className="w-full p-2 bg-neutral-800 rounded"
-            required
-          />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              YouTube URL
+            </label>
+            <input
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="w-full p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Song Title
+              </label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter song title"
+                className="w-full p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Artist Name
+              </label>
+              <input
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="Enter artist name"
+                className="w-full p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300"
+                required
+              />
+            </div>
+          </div>
         </div>
+
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded"
+          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
-          {isLoading ? "Submitting..." : "Upload"}
+          {isLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <span>Import from YouTube</span>
+            </>
+          )}
         </button>
       </form>
     </div>

@@ -18,14 +18,29 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-neutral-900 text-white antialiased">
-        <Toaster />
+      <body className="gradient-bg text-white antialiased min-h-screen">
+        <Toaster
+          position="top-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: "rgba(23, 23, 23, 0.7)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              color: "white",
+            },
+          }}
+        />
         <AuthGuard>
           <Navbar />
 
-          {/* 👇 Add top + bottom padding to account for fixed Navbar & Player */}
-          <main className="pt-16 pb-24 px-4 max-w-5xl min-h-screen mx-auto">
-            {children}
+          {/* Main content with proper spacing */}
+          <main className="pt-24 pb-32 px-6 max-w-7xl min-h-screen mx-auto">
+            <div className="relative">
+              {/* Background decoration */}
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl -z-10" />
+              {children}
+            </div>
           </main>
         </AuthGuard>
         <AudioPlayerWrapper />
