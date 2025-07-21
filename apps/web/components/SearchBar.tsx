@@ -3,7 +3,7 @@ import { Search, X } from "lucide-react";
 type SearchBarProps = {
   query: string;
   onChange: (q: string) => void;
-  onSearch: () => void;
+  onSearch?: () => void; // Make onSearch optional
 };
 
 export function SearchBar({ query, onChange, onSearch }: SearchBarProps) {
@@ -20,7 +20,7 @@ export function SearchBar({ query, onChange, onSearch }: SearchBarProps) {
           placeholder="Search for songs, artists, albums..."
           value={query}
           onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSearch()}
+          onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
           className="w-full pl-12 pr-12 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300 text-lg"
         />
         {query && (

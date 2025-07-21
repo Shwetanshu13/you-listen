@@ -38,7 +38,8 @@ export default function SongCard({
   };
 
   return (
-    <div
+    <button
+      onClick={handlePlay}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
@@ -57,7 +58,6 @@ export default function SongCard({
       <div className="flex items-center space-x-4 relative z-10">
         {/* Play Button */}
         <button
-          onClick={handlePlay}
           className={cn(
             "relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 transform",
             isCurrent
@@ -141,6 +141,6 @@ export default function SongCard({
           </button>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

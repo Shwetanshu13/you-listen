@@ -21,7 +21,14 @@ export default function SongList() {
   const [isSearching, setIsSearching] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
 
-  const fetchAllSongs = async () => {
+  // Set searching state immediately when user types
+  useEffect(() => {
+    if (query.trim() !== "" && query !== debouncedQuery) {
+      setIsSearching(true);
+    }
+  }, [query, debouncedQuery]);
+
+  const fetchAllSongs = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get("/songs/all");
       setDisplayedSongs(data);
@@ -30,7 +37,7 @@ export default function SongList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const searchSongs = useCallback(async () => {
     try {
@@ -48,16 +55,12 @@ export default function SongList() {
 
   useEffect(() => {
     if (debouncedQuery.trim() === "") {
+      setIsSearching(false); // Reset searching state for empty query
       fetchAllSongs();
     } else {
       searchSongs();
     }
-  }, [debouncedQuery, searchSongs]);
-
-  const handleSearch = () => {
-    if (query.trim() === "") fetchAllSongs();
-    else searchSongs();
-  };
+  }, [debouncedQuery, searchSongs, fetchAllSongs]);
 
   return (
     <div className="space-y-8">
@@ -80,11 +83,7 @@ export default function SongList() {
             </div>
           </div>
 
-          <SearchBar
-            query={query}
-            onChange={setQuery}
-            onSearch={handleSearch}
-          />
+          <SearchBar query={query} onChange={setQuery} />
         </div>
       </div>
 
