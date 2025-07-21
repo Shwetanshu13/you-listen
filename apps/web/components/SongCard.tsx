@@ -1,10 +1,11 @@
 // components/SongCard.tsx
 "use client";
 
-import { Play, Pause, Heart, MoreVertical } from "lucide-react";
+import { Play, Pause, Heart, MoreVertical, Plus } from "lucide-react";
 import { useAudioStore } from "@/stores/useAudioStore";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "@/utils/axios";
 
 type SongCardProps = {
   id: number;
@@ -12,6 +13,10 @@ type SongCardProps = {
   artist: string;
   duration: string;
   fileUrl: string;
+  isLiked?: boolean;
+  onLikeChange?: (songId: number, isLiked: boolean) => void;
+  showAddToPlaylist?: boolean;
+  onAddToPlaylist?: (songId: number) => void;
 };
 
 export default function SongCard({
@@ -20,21 +25,61 @@ export default function SongCard({
   artist,
   duration,
   fileUrl,
+  isLiked: initialIsLiked = false,
+  onLikeChange,
+  showAddToPlaylist = false,
+  onAddToPlaylist,
 }: SongCardProps) {
   const { currentSong, isPlaying, setCurrentSong, setIsPlaying } =
     useAudioStore();
   const [isHovered, setIsHovered] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [isLiking, setIsLiking] = useState(false);
 
   const isCurrent = currentSong?.id === id;
 
-  const handlePlay = () => {
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+  }, [initialIsLiked]);
+
+  const handlePlay = async () => {
     if (isCurrent) {
       setIsPlaying(!isPlaying);
     } else {
       setCurrentSong({ id, title, artist, duration, fileUrl });
       setIsPlaying(true);
+
+      // Add to play history
+      try {
+        await axios.post("/history", { songId: id });
+      } catch (error) {
+        console.error("Error adding to play history:", error);
+      }
     }
+  };
+
+  const handleLikeToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isLiking) return;
+
+    try {
+      setIsLiking(true);
+      const response = await axios.post("/likes/toggle", { songId: id });
+      const newLikedState = response.data.liked;
+
+      setIsLiked(newLikedState);
+      onLikeChange?.(id, newLikedState);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToPlaylist?.(id);
   };
 
   return (
@@ -120,19 +165,28 @@ export default function SongCard({
           )}
         >
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsLiked(!isLiked);
-            }}
+            onClick={handleLikeToggle}
+            disabled={isLiking}
             className={cn(
               "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110",
               isLiked
                 ? "text-pink-500 hover:text-pink-400"
-                : "text-gray-400 hover:text-white"
+                : "text-gray-400 hover:text-white",
+              isLiking && "opacity-50 cursor-not-allowed"
             )}
           >
             <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
           </button>
+
+          {showAddToPlaylist && (
+            <button
+              onClick={handleAddToPlaylist}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300"
+              title="Add to playlist"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={(e) => e.stopPropagation()}

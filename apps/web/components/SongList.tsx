@@ -2,23 +2,32 @@
 
 import { useEffect, useState, useCallback } from "react";
 import SongCard from "@/components/SongCard";
+import PlaylistSelector from "@/components/PlaylistSelector";
 import { SearchBar } from "@/components/SearchBar";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAudioStore, Song } from "@/stores/useAudioStore";
 import axiosInstance from "@/utils/axios";
-import { Music, Loader2 } from "lucide-react";
+import { Music, Loader2, Play, Shuffle } from "lucide-react";
 
-interface Song {
+interface APISong {
   id: number;
   title: string;
   artist?: string;
   duration?: string;
+  isLiked?: boolean;
 }
 
 export default function SongList() {
   const [query, setQuery] = useState("");
-  const [displayedSongs, setDisplayedSongs] = useState<Song[]>([]);
+  const [displayedSongs, setDisplayedSongs] = useState<APISong[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+  const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+  const { setQueue } = useAudioStore();
   const debouncedQuery = useDebounce(query, 300);
 
   // Set searching state immediately when user types
@@ -62,25 +71,93 @@ export default function SongList() {
     }
   }, [debouncedQuery, searchSongs, fetchAllSongs]);
 
+  const handleLikeChange = (songId: number, isLiked: boolean) => {
+    setDisplayedSongs((prev) =>
+      prev.map((song) => (song.id === songId ? { ...song, isLiked } : song))
+    );
+  };
+
+  const handlePlayAll = () => {
+    if (displayedSongs.length === 0) return;
+
+    const songs: Song[] = displayedSongs.map((song) => ({
+      id: song.id,
+      title: song.title,
+      artist: song.artist || "Unknown",
+      duration: song.duration || "0:00",
+      fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
+      isLiked: song.isLiked,
+    }));
+
+    setQueue(songs, 0);
+  };
+
+  const handleShufflePlay = () => {
+    if (displayedSongs.length === 0) return;
+
+    const songs: Song[] = displayedSongs.map((song) => ({
+      id: song.id,
+      title: song.title,
+      artist: song.artist || "Unknown",
+      duration: song.duration || "0:00",
+      fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
+      isLiked: song.isLiked,
+    }));
+
+    // Shuffle the songs array
+    const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
+    setQueue(shuffledSongs, 0);
+  };
+
+  const handleAddToPlaylist = (songId: number) => {
+    const song = displayedSongs.find((s) => s.id === songId);
+    if (song) {
+      setSelectedSong({ id: songId, title: song.title });
+      setShowPlaylistSelector(true);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-3xl blur-xl" />
         <div className="relative glass rounded-3xl p-8">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-              <Music className="w-8 h-8 text-white" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                <Music className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                  Your Music
+                </h1>
+                <p className="text-gray-400 text-lg">
+                  {displayedSongs.length}{" "}
+                  {displayedSongs.length === 1 ? "song" : "songs"} available
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Your Music
-              </h1>
-              <p className="text-gray-400 text-lg">
-                {displayedSongs.length}{" "}
-                {displayedSongs.length === 1 ? "song" : "songs"} available
-              </p>
-            </div>
+
+            {/* Play Controls */}
+            {displayedSongs.length > 0 && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePlayAll}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full text-white font-semibold hover:from-pink-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-105"
+                >
+                  <Play className="w-5 h-5" />
+                  Play All
+                </button>
+                <button
+                  onClick={handleShufflePlay}
+                  className="flex items-center gap-2 px-6 py-3 bg-white/10 rounded-full text-white font-semibold hover:bg-white/20 transition-all duration-300 transform hover:scale-105"
+                >
+                  <Shuffle className="w-5 h-5" />
+                  Shuffle
+                </button>
+              </div>
+            )}
           </div>
 
           <SearchBar query={query} onChange={setQuery} />
@@ -146,12 +223,27 @@ export default function SongList() {
                   artist={song.artist || "Unknown"}
                   duration={song.duration || "0:00"}
                   fileUrl={`${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`}
+                  isLiked={song.isLiked}
+                  onLikeChange={handleLikeChange}
+                  showAddToPlaylist={true}
+                  onAddToPlaylist={handleAddToPlaylist}
                 />
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Playlist Selector Modal */}
+      <PlaylistSelector
+        isOpen={showPlaylistSelector}
+        onClose={() => {
+          setShowPlaylistSelector(false);
+          setSelectedSong(null);
+        }}
+        songId={selectedSong?.id || 0}
+        songTitle={selectedSong?.title || ""}
+      />
     </div>
   );
 }

@@ -1,18 +1,60 @@
 // controllers/songs.controller.ts
 import { Request, Response } from "express";
 import { db } from "../lib/db";
-import { songs } from "../db/schema";
-import { eq, ilike, or } from "drizzle-orm";
+import { songs, songLikes } from "../db/schema";
+import { eq, ilike, or, sql } from "drizzle-orm";
 import { deleteFromBucket } from "../lib/r2";
 import { audioDownloadQueue } from "../queues/audioDownloadQueue";
 
-export const getAllSongs = async (_: Request, res: Response) => {
-  const result = await db.select().from(songs).orderBy(songs.uploadedAt);
-  res.json(result);
+interface AuthenticatedRequest extends Request {
+  user?: { id: number; username: string; role: string };
+}
+
+export const getAllSongs = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.id;
+
+  try {
+    let result;
+
+    if (userId) {
+      // Include like status for authenticated users
+      result = await db
+        .select({
+          id: songs.id,
+          title: songs.title,
+          artist: songs.artist,
+          duration: songs.duration,
+          fileUrl: songs.fileUrl,
+          uploadedAt: songs.uploadedAt,
+          isLiked:
+            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+              "isLiked"
+            ),
+        })
+        .from(songs)
+        .leftJoin(
+          songLikes,
+          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+        )
+        .orderBy(songs.uploadedAt);
+    } else {
+      // Basic song data for unauthenticated users
+      result = await db.select().from(songs).orderBy(songs.uploadedAt);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching songs:", error);
+    res.status(500).json({ error: "Failed to fetch songs" });
+  }
 };
 
-export const getSongDetail = async (req: Request, res: Response) => {
+export const getSongDetail = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   const songId = parseInt(req.params.songId);
+  const userId = req.user?.id;
 
   if (isNaN(songId)) {
     res.status(400).json({ error: "Invalid song ID" });
@@ -20,7 +62,32 @@ export const getSongDetail = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await db.select().from(songs).where(eq(songs.id, songId));
+    let result;
+
+    if (userId) {
+      // Include like status for authenticated users
+      result = await db
+        .select({
+          id: songs.id,
+          title: songs.title,
+          artist: songs.artist,
+          duration: songs.duration,
+          fileUrl: songs.fileUrl,
+          uploadedAt: songs.uploadedAt,
+          isLiked:
+            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+              "isLiked"
+            ),
+        })
+        .from(songs)
+        .leftJoin(
+          songLikes,
+          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+        )
+        .where(eq(songs.id, songId));
+    } else {
+      result = await db.select().from(songs).where(eq(songs.id, songId));
+    }
 
     if (result.length === 0) {
       res.status(404).json({ error: "Song not found" });
@@ -34,36 +101,111 @@ export const getSongDetail = async (req: Request, res: Response) => {
   }
 };
 
-export const searchSongs = async (req: Request, res: Response) => {
+export const searchSongs = async (req: AuthenticatedRequest, res: Response) => {
   const query = req.params.q;
+  const userId = req.user?.id;
+
   if (!query || query.length < 2) {
     res.status(400).json({ error: "Invalid search query" });
     return;
   }
 
-  const result = await db
-    .select()
-    .from(songs)
-    .where(ilike(songs.title, `%${query}%`));
+  try {
+    let result;
 
-  res.json(result);
+    if (userId) {
+      // Include like status for authenticated users
+      result = await db
+        .select({
+          id: songs.id,
+          title: songs.title,
+          artist: songs.artist,
+          duration: songs.duration,
+          fileUrl: songs.fileUrl,
+          uploadedAt: songs.uploadedAt,
+          isLiked:
+            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+              "isLiked"
+            ),
+        })
+        .from(songs)
+        .leftJoin(
+          songLikes,
+          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+        )
+        .where(ilike(songs.title, `%${query}%`));
+    } else {
+      result = await db
+        .select()
+        .from(songs)
+        .where(ilike(songs.title, `%${query}%`));
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error searching songs:", error);
+    res.status(500).json({ error: "Failed to search songs" });
+  }
 };
 
-export const searchByTitleOrArtist = async (req: Request, res: Response) => {
+export const searchByTitleOrArtist = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   const { query } = req.body;
+  const userId = req.user?.id;
+
   if (!query || query.length < 1) {
     res.status(400).json({ error: "Query must be at least 1 character" });
     return;
   }
 
-  const result = await db
-    .select()
-    .from(songs)
-    .where(
-      or(ilike(songs.title, `%${query}%`), ilike(songs.artist, `%${query}%`))
-    );
+  try {
+    let result;
 
-  res.json(result);
+    if (userId) {
+      // Include like status for authenticated users
+      result = await db
+        .select({
+          id: songs.id,
+          title: songs.title,
+          artist: songs.artist,
+          duration: songs.duration,
+          fileUrl: songs.fileUrl,
+          uploadedAt: songs.uploadedAt,
+          isLiked:
+            sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
+              "isLiked"
+            ),
+        })
+        .from(songs)
+        .leftJoin(
+          songLikes,
+          sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
+        )
+        .where(
+          or(
+            ilike(songs.title, `%${query}%`),
+            ilike(songs.artist, `%${query}%`)
+          )
+        );
+    } else {
+      result = await db
+        .select()
+        .from(songs)
+        .where(
+          or(
+            ilike(songs.title, `%${query}%`),
+            ilike(songs.artist, `%${query}%`)
+          )
+        );
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error searching songs:", error);
+    res.status(500).json({ error: "Failed to search songs" });
+  }
 };
 
 export const ingestYouTubeSong = async (req: Request, res: Response) => {
