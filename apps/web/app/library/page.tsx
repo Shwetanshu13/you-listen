@@ -273,7 +273,7 @@ const Library = () => {
                   const playlistData = response.data;
 
                   if (playlistData.songs && playlistData.songs.length > 0) {
-                    const audioSongs = playlistData.songs.map((song: any) => ({
+                    const audioSongs = playlistData.songs.map((song: Song) => ({
                       id: song.id,
                       title: song.title,
                       artist: song.artist,
