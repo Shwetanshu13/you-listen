@@ -10,7 +10,7 @@ interface Song {
   id: number;
   title: string;
   artist: string;
-  duration: number;
+  duration: number | string;
   fileUrl: string;
   order: number;
   addedAt: string;
@@ -128,7 +128,15 @@ export default function PlaylistDetail() {
     }
   };
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = (duration: number | string) => {
+    // If duration is already formatted as string (MM:SS), return it
+    if (typeof duration === "string" && duration.includes(":")) {
+      return duration;
+    }
+
+    // If duration is a number (seconds), convert to MM:SS format
+    const seconds =
+      typeof duration === "string" ? parseInt(duration) || 0 : duration;
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -144,7 +152,13 @@ export default function PlaylistDetail() {
 
   const getTotalDuration = () => {
     if (!playlist) return 0;
-    return playlist.songs.reduce((total, song) => total + song.duration, 0);
+    return playlist.songs.reduce((total, song) => {
+      const duration =
+        typeof song.duration === "string"
+          ? parseInt(song.duration) || 0
+          : song.duration;
+      return total + duration;
+    }, 0);
   };
 
   if (loading) {

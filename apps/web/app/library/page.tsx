@@ -11,12 +11,13 @@ import {
   Play,
 } from "lucide-react";
 import axios from "@/utils/axios";
+import { useAudioStore } from "@/stores/useAudioStore";
 
 interface Song {
   id: number;
   title: string;
   artist: string;
-  duration: number;
+  duration: number | string;
   fileUrl: string;
   isLiked?: boolean;
   likedAt?: string;
@@ -46,6 +47,8 @@ const Library = () => {
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [newPlaylistDescription, setNewPlaylistDescription] = useState("");
+
+  const { setQueue } = useAudioStore();
 
   useEffect(() => {
     fetchLibraryData();
@@ -92,7 +95,15 @@ const Library = () => {
     }
   };
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = (duration: number | string) => {
+    // If duration is already formatted as string (MM:SS), return it
+    if (typeof duration === "string" && duration.includes(":")) {
+      return duration;
+    }
+
+    // If duration is a number (seconds), convert to MM:SS format
+    const seconds =
+      typeof duration === "string" ? parseInt(duration) || 0 : duration;
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -171,7 +182,35 @@ const Library = () => {
             <span className="text-sm text-gray-400">
               {formatDuration(song.duration)}
             </span>
-            <button className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center hover:bg-pink-400 transition-all duration-300">
+            <button
+              onClick={() => {
+                // Create a queue with just this song or all songs in the current list
+                const currentSongs =
+                  activeTab === "liked"
+                    ? likedSongs
+                    : activeTab === "recent"
+                    ? recentlyPlayed
+                    : activeTab === "most-played"
+                    ? mostPlayed
+                    : [];
+
+                const songIndex = currentSongs.findIndex(
+                  (s) => s.id === song.id
+                );
+                const audioSongs = currentSongs.map((s) => ({
+                  id: s.id,
+                  title: s.title,
+                  artist: s.artist,
+                  duration: formatDuration(s.duration),
+                  fileUrl:
+                    s.fileUrl ||
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${s.id}`,
+                }));
+
+                setQueue(audioSongs, songIndex >= 0 ? songIndex : 0);
+              }}
+              className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center hover:bg-pink-400 transition-all duration-300"
+            >
               <Play className="w-4 h-4 text-white ml-0.5" />
             </button>
           </div>
@@ -226,9 +265,29 @@ const Library = () => {
               {playlist.songs?.length || 0} songs
             </span>
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // TODO: Play playlist
+                try {
+                  // Fetch playlist details to get songs
+                  const response = await axios.get(`/playlists/${playlist.id}`);
+                  const playlistData = response.data;
+
+                  if (playlistData.songs && playlistData.songs.length > 0) {
+                    const audioSongs = playlistData.songs.map((song: any) => ({
+                      id: song.id,
+                      title: song.title,
+                      artist: song.artist,
+                      duration: formatDuration(song.duration),
+                      fileUrl:
+                        song.fileUrl ||
+                        `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
+                    }));
+
+                    setQueue(audioSongs, 0);
+                  }
+                } catch (error) {
+                  console.error("Error playing playlist:", error);
+                }
               }}
               className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center hover:bg-purple-400 transition-all duration-300"
             >

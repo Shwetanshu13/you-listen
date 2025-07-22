@@ -133,8 +133,15 @@ export default function AudioPlayer() {
           .catch(console.error);
       }
 
-      // Auto-play next song
-      playNext();
+      // Handle repeat modes
+      if (repeat === "one") {
+        // Repeat current song - restart it
+        audio.currentTime = 0;
+        audio.play().catch(console.error);
+      } else {
+        // Auto-play next song for other modes
+        playNext();
+      }
     };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -146,7 +153,7 @@ export default function AudioPlayer() {
       audio.removeEventListener("timeupdate", updateProgress);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [currentSong, playNext]);
+  }, [currentSong, playNext, repeat]);
 
   useEffect(() => {
     if (audioRef.current) {

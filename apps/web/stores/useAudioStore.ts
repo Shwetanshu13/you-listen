@@ -108,7 +108,20 @@ export const useAudioStore = create<AudioState>()(
 
       playNext: () => {
         const state = get();
-        const { queue, currentIndex, repeat, autoplay } = state;
+        const { queue, currentIndex, repeat, autoplay, currentSong } = state;
+
+        // If no queue but there's a current song, handle single song playback
+        if (queue.length === 0 && currentSong) {
+          if (repeat === "one") {
+            // Restart the current song
+            set({ isPlaying: true });
+            return;
+          } else {
+            // Stop playing if no repeat for single song
+            set({ isPlaying: false });
+            return;
+          }
+        }
 
         if (!autoplay && repeat === "off") return;
 
@@ -145,7 +158,13 @@ export const useAudioStore = create<AudioState>()(
 
       playPrevious: () => {
         const state = get();
-        const { queue, currentIndex } = state;
+        const { queue, currentIndex, currentSong } = state;
+
+        // If no queue but there's a current song, restart the current song
+        if (queue.length === 0 && currentSong) {
+          set({ isPlaying: true });
+          return;
+        }
 
         let prevIndex = currentIndex - 1;
 
