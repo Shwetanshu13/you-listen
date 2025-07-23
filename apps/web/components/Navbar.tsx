@@ -53,18 +53,6 @@ export default function Navbar() {
             );
           })}
         </div>
-
-        {/* Search (placeholder for future) */}
-        <div className="hidden md:flex items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search songs, artists..."
-              className="w-64 pl-10 pr-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-300"
-            />
-          </div>
-        </div>
       </div>
     </nav>
   );
