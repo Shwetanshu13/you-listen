@@ -51,7 +51,9 @@ export default function AuthGuard({ children }: Props) {
   if (!isPublic && (isLoading || !user)) {
     return (
       <div className="h-screen w-full flex items-center justify-center text-white">
-        Checking authentication...
+        The backend is hosted in the free tier of Render. Please allow a few
+        seconds for it to wake up if you see this message. If it takes too long,
+        try refreshing the page.
       </div>
     );
   }
