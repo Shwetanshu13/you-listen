@@ -44,12 +44,12 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="relative mx-auto w-20 h-20 mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-pink-500 to-purple-600 flex items-center justify-center">
               <Music className="w-10 h-10 text-white" />
             </div>
-            <div className="absolute inset-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 animate-ping opacity-20" />
+            <div className="absolute inset-0 w-20 h-20 rounded-2xl bg-linear-to-br from-pink-500 to-purple-600 animate-ping opacity-20" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
             You Listen
           </h1>
           <p className="text-gray-400 text-lg mt-2">
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-3xl blur-xl" />
+          <div className="absolute inset-0 bg-linear-to-r from-pink-500/20 to-purple-500/20 rounded-3xl blur-xl" />
           <div className="relative glass rounded-3xl p-8">
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Username Field */}
