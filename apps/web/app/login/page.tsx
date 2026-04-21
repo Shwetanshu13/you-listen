@@ -55,10 +55,6 @@ export default function LoginPage() {
           <p className="text-gray-400 text-lg mt-2">
             Sign in to your music sanctuary
           </p>
-          <p className="text-gray-400 text-xl mt-2">
-            If someone from TUF is seeing this, I have provided you with the
-            credentials to Log In in the google form.
-          </p>
         </div>
 
         {/* Login Form */}
