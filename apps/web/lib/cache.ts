@@ -16,7 +16,7 @@ export const getFromCache = (key: string) => {
   }
 };
 
-export const setInCache = (key: string, value: any, ttlInSeconds = 300) => {
+export const setInCache = (key: string, value: unknown, ttlInSeconds = 300) => {
   if (typeof window === "undefined") return;
   try {
     const now = new Date();
