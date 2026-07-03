@@ -22,7 +22,8 @@ export default function AdminManageUsers() {
       setLoading(true);
       const res = await axios.get("/users/all");
       setUsers(res.data);
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
       toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
@@ -39,7 +40,8 @@ export default function AdminManageUsers() {
       await axios.delete(`/users/${id}`);
       toast.success("User deleted successfully");
       fetchUsers();
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to delete user:", err);
       toast.error("Failed to delete user");
     }
   };
@@ -51,7 +53,8 @@ export default function AdminManageUsers() {
       await axios.patch(`/users/${id}/role`, { role: newRole });
       toast.success("User role updated successfully");
       fetchUsers();
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to update user role:", err);
       toast.error("Failed to update user role");
     }
   };

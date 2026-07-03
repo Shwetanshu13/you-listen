@@ -26,7 +26,8 @@ export default function AdminManageSongs() {
       setLoading(true);
       const res = await axios.get("/songs/all");
       setSongs(res.data);
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to fetch songs:", err);
       toast.error("Failed to fetch songs");
     } finally {
       setLoading(false);
@@ -43,7 +44,8 @@ export default function AdminManageSongs() {
       await axios.delete(`/songs`, { data: { id, fileUrl } });
       toast.success("Song deleted successfully");
       fetchSongs();
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to delete song:", err);
       toast.error("Failed to delete song");
     }
   };
@@ -66,7 +68,8 @@ export default function AdminManageSongs() {
       toast.success("Song updated successfully");
       setEditingId(null);
       fetchSongs();
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to update song:", err);
       toast.error("Failed to update song");
     }
   };
