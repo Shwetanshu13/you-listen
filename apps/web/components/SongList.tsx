@@ -8,6 +8,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useAudioStore, Song } from "@/stores/useAudioStore";
 import axiosInstance from "@/utils/axios";
+import { getFromCache, setInCache } from "@/lib/cache";
 import { Music, Loader2, Play, Shuffle } from "lucide-react";
 
 interface APISong {
@@ -69,12 +70,22 @@ export default function SongList() {
             ? `/songs/all?limit=${limit}&offset=${currentPage * limit}`
             : `/songs/search?limit=${limit}&offset=${currentPage * limit}`;
 
-        const fetchFn =
-          currentQuery.trim() === ""
-            ? () => axiosInstance.get(endpoint)
-            : () => axiosInstance.post(endpoint, { query: currentQuery });
+        const cacheKey = `songs_${currentQuery.trim()}_${currentPage}_${limit}`;
+        const cachedData = getFromCache(cacheKey);
 
-        const { data } = await fetchFn();
+        let data;
+        if (cachedData) {
+          data = cachedData;
+        } else {
+          const fetchFn =
+            currentQuery.trim() === ""
+              ? () => axiosInstance.get(endpoint)
+              : () => axiosInstance.post(endpoint, { query: currentQuery });
+
+          const response = await fetchFn();
+          data = response.data;
+          setInCache(cacheKey, data, 300); // cache for 5 minutes
+        }
 
         if (data.length < limit) {
           setHasMore(false);
