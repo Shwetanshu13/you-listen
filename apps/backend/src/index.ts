@@ -9,6 +9,7 @@ import playlistsRoutes from "./routes/playlists.route";
 import likesRoutes from "./routes/likes.route";
 import historyRoutes from "./routes/history.route";
 import preferencesRoutes from "./routes/preferences.route";
+import usersRoutes from "./routes/users.route";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/playlists", playlistsRoutes);
 app.use("/likes", likesRoutes);
 app.use("/history", historyRoutes);
 app.use("/preferences", preferencesRoutes);
+app.use("/users", usersRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

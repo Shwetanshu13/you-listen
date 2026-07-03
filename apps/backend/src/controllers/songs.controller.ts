@@ -295,3 +295,34 @@ export const deleteSong = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete song" });
   }
 };
+
+export const updateSong = async (req: Request, res: Response) => {
+  const songId = parseInt(req.params.id);
+  const { title, artist } = req.body;
+
+  if (isNaN(songId)) {
+    res.status(400).json({ error: "Invalid song ID" });
+    return;
+  }
+
+  try {
+    const updated = await db
+      .update(songs)
+      .set({
+        ...(title && { title }),
+        ...(artist && { artist }),
+      })
+      .where(eq(songs.id, songId))
+      .returning();
+
+    if (updated.length === 0) {
+      res.status(404).json({ error: "Song not found" });
+      return;
+    }
+
+    res.json({ success: true, song: updated[0] });
+  } catch (error) {
+    console.error("Error updating song:", error);
+    res.status(500).json({ error: "Failed to update song" });
+  }
+};

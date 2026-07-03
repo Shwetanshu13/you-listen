@@ -4,18 +4,20 @@
 import { useState } from "react";
 import RequireAdminAuth from "@/components/RequireAdminAuth";
 import AdminUploadForm from "@/components/AdminUploadForm";
-import CreateUserForm from "@/components/CreateUserForm";
 import YouTubeIngestForm from "@/components/YTIngest";
-import { Upload, Youtube, UserPlus, Shield } from "lucide-react";
+import AdminManageUsers from "@/components/AdminManageUsers";
+import AdminManageSongs from "@/components/AdminManageSongs";
+import { Upload, Youtube, Shield, Users, Music } from "lucide-react";
 
 const tabs = [
+  { name: "Manage Users", key: "users", icon: Users },
+  { name: "Manage Songs", key: "songs", icon: Music },
   { name: "Upload Song", key: "upload", icon: Upload },
   { name: "Ingest from YouTube", key: "youtube", icon: Youtube },
-  { name: "Create User", key: "user", icon: UserPlus },
 ];
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("upload");
+  const [activeTab, setActiveTab] = useState("users");
 
   return (
     <RequireAdminAuth>
@@ -65,9 +67,10 @@ export default function AdminDashboard() {
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl blur-xl -z-10" />
           <div className="glass rounded-3xl p-8">
+            {activeTab === "users" && <AdminManageUsers />}
+            {activeTab === "songs" && <AdminManageSongs />}
             {activeTab === "upload" && <AdminUploadForm />}
             {activeTab === "youtube" && <YouTubeIngestForm />}
-            {activeTab === "user" && <CreateUserForm />}
           </div>
         </div>
       </div>

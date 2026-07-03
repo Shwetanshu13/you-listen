@@ -7,6 +7,7 @@ import {
   searchByTitleOrArtist,
   ingestYouTubeSong,
   deleteSong,
+  updateSong,
 } from "../controllers/songs.controller";
 import { verifyUser } from "../middleware/verifyUser";
 import { verifyAdmin } from "../middleware/verifyAdmin";
@@ -20,5 +21,6 @@ router.post("/search", verifyUser, searchByTitleOrArtist); // POST { query: "...
 
 router.post("/ingest", verifyAdmin, ingestYouTubeSong);
 router.delete("/", verifyAdmin, deleteSong);
+router.patch("/:id", verifyAdmin, updateSong);
 
 export default router;

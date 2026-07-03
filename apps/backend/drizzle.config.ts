@@ -4,6 +4,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" }); // Adjust path if needed
 const dbUrl = process.env.DATABASE_URL!;
+console.log("database url", dbUrl);
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
