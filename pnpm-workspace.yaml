@@ -1,2 +1,11 @@
 packages:
   - "apps/*"
+allowBuilds:
+  '@tailwindcss/oxide': true
+  bcrypt: true
+  es5-ext: true
+  esbuild: true
+  msgpackr-extract: true
+  sharp: true
+  unrs-resolver: true
+  youtube-dl-exec: true
