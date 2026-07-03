@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { db } from "../lib/db";
 import { playlists, playlistSongs, songs } from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { redis } from "../lib/redis";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: number; username: string; role: string };
@@ -48,6 +49,9 @@ export const createPlaylist = async (
       })
       .returning();
 
+    // Invalidate playlists cache
+    await redis.del(`cache:playlists:user:${userId}`);
+
     res.status(201).json(playlist);
   } catch (error: any) {
     console.error("Error creating playlist:", error);
@@ -71,11 +75,20 @@ export const getUserPlaylists = async (
   }
 
   try {
+    const cacheKey = `cache:playlists:user:${userId}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      res.json(JSON.parse(cached));
+      return;
+    }
+
     const userPlaylists = await db
       .select()
       .from(playlists)
       .where(eq(playlists.userId, userId))
       .orderBy(desc(playlists.updatedAt));
+
+    await redis.set(cacheKey, JSON.stringify(userPlaylists), "EX", 3600);
 
     res.json(userPlaylists);
   } catch (error: any) {
@@ -107,6 +120,13 @@ export const getPlaylistById = async (
   }
 
   try {
+    const cacheKey = `cache:playlist:${playlistId}:user:${userId}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      res.json(JSON.parse(cached));
+      return;
+    }
+
     const [playlist] = await db
       .select()
       .from(playlists)
@@ -133,10 +153,14 @@ export const getPlaylistById = async (
       .where(eq(playlistSongs.playlistId, playlistId))
       .orderBy(playlistSongs.order);
 
-    res.json({
+    const result = {
       ...playlist,
       songs: playlistWithSongs,
-    });
+    };
+
+    await redis.set(cacheKey, JSON.stringify(result), "EX", 3600);
+
+    res.json(result);
   } catch (error) {
     console.error("Error fetching playlist:", error);
     res.status(500).json({ error: "Failed to fetch playlist" });
@@ -212,6 +236,10 @@ export const addSongToPlaylist = async (
       .set({ updatedAt: new Date() })
       .where(eq(playlists.id, playlistId));
 
+    // Invalidate caches
+    await redis.del(`cache:playlists:user:${userId}`);
+    await redis.del(`cache:playlist:${playlistId}:user:${userId}`);
+
     res.status(201).json({ message: "Song added to playlist successfully" });
   } catch (error) {
     console.error("Error adding song to playlist:", error);
@@ -265,6 +293,10 @@ export const removeSongFromPlaylist = async (
       .set({ updatedAt: new Date() })
       .where(eq(playlists.id, playlistId));
 
+    // Invalidate caches
+    await redis.del(`cache:playlists:user:${userId}`);
+    await redis.del(`cache:playlist:${playlistId}:user:${userId}`);
+
     res.json({ message: "Song removed from playlist successfully" });
   } catch (error) {
     console.error("Error removing song from playlist:", error);
@@ -308,6 +340,10 @@ export const deletePlaylist = async (
 
     // Delete playlist
     await db.delete(playlists).where(eq(playlists.id, playlistId));
+
+    // Invalidate caches
+    await redis.del(`cache:playlists:user:${userId}`);
+    await redis.del(`cache:playlist:${playlistId}:user:${userId}`);
 
     res.json({ message: "Playlist deleted successfully" });
   } catch (error) {
@@ -357,6 +393,10 @@ export const updatePlaylist = async (
       })
       .where(eq(playlists.id, playlistId))
       .returning();
+
+    // Invalidate caches
+    await redis.del(`cache:playlists:user:${userId}`);
+    await redis.del(`cache:playlist:${playlistId}:user:${userId}`);
 
     res.json(updatedPlaylist);
   } catch (error) {

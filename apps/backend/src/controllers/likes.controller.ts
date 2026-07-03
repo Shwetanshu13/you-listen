@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { db } from "../lib/db";
 import { songLikes, songs } from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { redis } from "../lib/redis";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: number; username: string; role: string };
@@ -63,6 +64,9 @@ export const toggleSongLike = async (
         message: "Song liked successfully",
       });
     }
+    
+    // Invalidate caches
+    await redis.del(`cache:likes:user:${userId}`);
   } catch (error) {
     console.error("Error toggling song like:", error);
     res.status(500).json({ error: "Failed to toggle song like" });
@@ -81,6 +85,13 @@ export const getUserLikedSongs = async (
   }
 
   try {
+    const cacheKey = `cache:likes:user:${userId}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      res.json(JSON.parse(cached));
+      return;
+    }
+
     const likedSongs = await db
       .select({
         id: songs.id,
@@ -94,6 +105,8 @@ export const getUserLikedSongs = async (
       .innerJoin(songs, eq(songLikes.songId, songs.id))
       .where(eq(songLikes.userId, userId))
       .orderBy(desc(songLikes.likedAt));
+
+    await redis.set(cacheKey, JSON.stringify(likedSongs), "EX", 3600);
 
     res.json(likedSongs);
   } catch (error: any) {

@@ -5,6 +5,7 @@ import { songs, songLikes } from "../db/schema";
 import { eq, ilike, or, sql } from "drizzle-orm";
 import { deleteFromBucket } from "../lib/r2";
 import { audioDownloadQueue } from "../queues/audioDownloadQueue";
+import { redis } from "../lib/redis";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: number; username: string; role: string };
@@ -12,45 +13,50 @@ interface AuthenticatedRequest extends Request {
 
 export const getAllSongs = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.id;
+  const limit = parseInt(req.query.limit as string) || 50;
+  const offset = parseInt(req.query.offset as string) || 0;
 
   try {
-    let result;
+    const cacheKey = `cache:songs:all:limit:${limit}:offset:${offset}`;
+    let baseSongs;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      baseSongs = JSON.parse(cached);
+    } else {
+      baseSongs = await db
+        .select()
+        .from(songs)
+        .orderBy(songs.uploadedAt)
+        .limit(limit)
+        .offset(offset);
+      
+      // Cache for 1 hour
+      await redis.set(cacheKey, JSON.stringify(baseSongs), "EX", 3600);
+    }
+
+    let result = baseSongs;
 
     if (userId) {
       try {
-        // Try to include like status for authenticated users (v2 feature)
-        result = await db
-          .select({
-            id: songs.id,
-            title: songs.title,
-            artist: songs.artist,
-            duration: songs.duration,
-            fileUrl: songs.fileUrl,
-            uploadedAt: songs.uploadedAt,
-            isLiked:
-              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-                "isLiked"
-              ),
-          })
-          .from(songs)
-          .leftJoin(
-            songLikes,
-            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-          )
-          .orderBy(songs.uploadedAt);
+        const likedRecords = await db
+          .select({ songId: songLikes.songId })
+          .from(songLikes)
+          .where(eq(songLikes.userId, userId));
+        
+        const likedSongIds = new Set(likedRecords.map(r => r.songId));
+        
+        result = baseSongs.map((song: any) => ({
+          ...song,
+          isLiked: likedSongIds.has(song.id),
+        }));
       } catch (error: any) {
-        // Fallback to basic query if v2 tables don't exist
         if (error.code === "42P01") {
-          // PostgreSQL error code for "relation does not exist"
-          console.log("V2 tables not found, falling back to basic query");
-          result = await db.select().from(songs).orderBy(songs.uploadedAt);
+          console.log("V2 tables not found, skipping likes mapping");
         } else {
           throw error;
         }
       }
-    } else {
-      // Basic song data for unauthenticated users
-      result = await db.select().from(songs).orderBy(songs.uploadedAt);
     }
 
     res.json(result);
@@ -131,48 +137,50 @@ export const searchSongs = async (req: AuthenticatedRequest, res: Response) => {
     return;
   }
 
+  const limit = parseInt(req.query.limit as string) || 50;
+  const offset = parseInt(req.query.offset as string) || 0;
+
   try {
-    let result;
+    const cacheKey = `cache:songs:search:q:${query}:limit:${limit}:offset:${offset}`;
+    let baseSongs;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      baseSongs = JSON.parse(cached);
+    } else {
+      baseSongs = await db
+        .select()
+        .from(songs)
+        .where(ilike(songs.title, `%${query}%`))
+        .limit(limit)
+        .offset(offset);
+      
+      // Cache searches for 5 minutes
+      await redis.set(cacheKey, JSON.stringify(baseSongs), "EX", 300);
+    }
+
+    let result = baseSongs;
 
     if (userId) {
       try {
-        // Try to include like status for authenticated users (v2 feature)
-        result = await db
-          .select({
-            id: songs.id,
-            title: songs.title,
-            artist: songs.artist,
-            duration: songs.duration,
-            fileUrl: songs.fileUrl,
-            uploadedAt: songs.uploadedAt,
-            isLiked:
-              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-                "isLiked"
-              ),
-          })
-          .from(songs)
-          .leftJoin(
-            songLikes,
-            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-          )
-          .where(ilike(songs.title, `%${query}%`));
+        const likedRecords = await db
+          .select({ songId: songLikes.songId })
+          .from(songLikes)
+          .where(eq(songLikes.userId, userId));
+        
+        const likedSongIds = new Set(likedRecords.map(r => r.songId));
+        
+        result = baseSongs.map((song: any) => ({
+          ...song,
+          isLiked: likedSongIds.has(song.id),
+        }));
       } catch (error: any) {
-        // Fallback to basic query if v2 tables don't exist
         if (error.code === "42P01") {
-          console.log("V2 tables not found, falling back to basic query");
-          result = await db
-            .select()
-            .from(songs)
-            .where(ilike(songs.title, `%${query}%`));
+          console.log("V2 tables not found, skipping likes mapping");
         } else {
           throw error;
         }
       }
-    } else {
-      result = await db
-        .select()
-        .from(songs)
-        .where(ilike(songs.title, `%${query}%`));
     }
 
     res.json(result);
@@ -194,55 +202,18 @@ export const searchByTitleOrArtist = async (
     return;
   }
 
-  try {
-    let result;
+  const limit = parseInt(req.query.limit as string) || 50;
+  const offset = parseInt(req.query.offset as string) || 0;
 
-    if (userId) {
-      try {
-        // Try to include like status for authenticated users (v2 feature)
-        result = await db
-          .select({
-            id: songs.id,
-            title: songs.title,
-            artist: songs.artist,
-            duration: songs.duration,
-            fileUrl: songs.fileUrl,
-            uploadedAt: songs.uploadedAt,
-            isLiked:
-              sql`CASE WHEN ${songLikes.id} IS NOT NULL THEN true ELSE false END`.as(
-                "isLiked"
-              ),
-          })
-          .from(songs)
-          .leftJoin(
-            songLikes,
-            sql`${songLikes.songId} = ${songs.id} AND ${songLikes.userId} = ${userId}`
-          )
-          .where(
-            or(
-              ilike(songs.title, `%${query}%`),
-              ilike(songs.artist, `%${query}%`)
-            )
-          );
-      } catch (error: any) {
-        // Fallback to basic query if v2 tables don't exist
-        if (error.code === "42P01") {
-          console.log("V2 tables not found, falling back to basic query");
-          result = await db
-            .select()
-            .from(songs)
-            .where(
-              or(
-                ilike(songs.title, `%${query}%`),
-                ilike(songs.artist, `%${query}%`)
-              )
-            );
-        } else {
-          throw error;
-        }
-      }
+  try {
+    const cacheKey = `cache:songs:searchAll:q:${query}:limit:${limit}:offset:${offset}`;
+    let baseSongs;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      baseSongs = JSON.parse(cached);
     } else {
-      result = await db
+      baseSongs = await db
         .select()
         .from(songs)
         .where(
@@ -250,7 +221,36 @@ export const searchByTitleOrArtist = async (
             ilike(songs.title, `%${query}%`),
             ilike(songs.artist, `%${query}%`)
           )
-        );
+        )
+        .limit(limit)
+        .offset(offset);
+      
+      // Cache searches for 5 minutes
+      await redis.set(cacheKey, JSON.stringify(baseSongs), "EX", 300);
+    }
+
+    let result = baseSongs;
+
+    if (userId) {
+      try {
+        const likedRecords = await db
+          .select({ songId: songLikes.songId })
+          .from(songLikes)
+          .where(eq(songLikes.userId, userId));
+        
+        const likedSongIds = new Set(likedRecords.map(r => r.songId));
+        
+        result = baseSongs.map((song: any) => ({
+          ...song,
+          isLiked: likedSongIds.has(song.id),
+        }));
+      } catch (error: any) {
+        if (error.code === "42P01") {
+          console.log("V2 tables not found, skipping likes mapping");
+        } else {
+          throw error;
+        }
+      }
     }
 
     res.json(result);

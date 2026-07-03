@@ -5,6 +5,7 @@ import SongCard from "@/components/SongCard";
 import PlaylistSelector from "@/components/PlaylistSelector";
 import { SearchBar } from "@/components/SearchBar";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useAudioStore, Song } from "@/stores/useAudioStore";
 import axiosInstance from "@/utils/axios";
 import { Music, Loader2, Play, Shuffle } from "lucide-react";
@@ -30,6 +31,22 @@ export default function SongList() {
   const { setQueue } = useAudioStore();
   const debouncedQuery = useDebounce(query, 300);
 
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const limit = 20;
+
+  const { targetRef, isIntersecting } = useIntersectionObserver({
+    threshold: 0.1,
+    enabled: hasMore && !isLoading && !isLoadingMore,
+  });
+
+  useEffect(() => {
+    if (isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+      setPage((prev) => prev + 1);
+    }
+  }, [isIntersecting, hasMore, isLoading, isLoadingMore]);
+
   // Set searching state immediately when user types
   useEffect(() => {
     if (query.trim() !== "" && query !== debouncedQuery) {
@@ -37,39 +54,64 @@ export default function SongList() {
     }
   }, [query, debouncedQuery]);
 
-  const fetchAllSongs = useCallback(async () => {
-    try {
-      const { data } = await axiosInstance.get("/songs/all");
-      setDisplayedSongs(data);
-    } catch (err) {
-      console.error("Failed to fetch songs", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetchSongs = useCallback(
+    async (currentPage: number, currentQuery: string) => {
+      try {
+        const isFirstPage = currentPage === 0;
+        if (isFirstPage) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
 
-  const searchSongs = useCallback(async () => {
-    try {
-      setIsSearching(true);
-      const { data } = await axiosInstance.post("/songs/search", {
-        query: debouncedQuery,
-      });
-      setDisplayedSongs(data);
-    } catch (err) {
-      console.error("Search failed", err);
-    } finally {
-      setIsSearching(false);
-    }
+        const endpoint =
+          currentQuery.trim() === ""
+            ? `/songs/all?limit=${limit}&offset=${currentPage * limit}`
+            : `/songs/search?limit=${limit}&offset=${currentPage * limit}`;
+
+        const fetchFn =
+          currentQuery.trim() === ""
+            ? () => axiosInstance.get(endpoint)
+            : () => axiosInstance.post(endpoint, { query: currentQuery });
+
+        const { data } = await fetchFn();
+
+        if (data.length < limit) {
+          setHasMore(false);
+        }
+
+        if (isFirstPage) {
+          setDisplayedSongs(data);
+        } else {
+          setDisplayedSongs((prev) => {
+            const newSongs = data.filter(
+              (newSong: APISong) => !prev.some((s) => s.id === newSong.id)
+            );
+            return [...prev, ...newSongs];
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch songs", err);
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        setIsSearching(false);
+      }
+    },
+    [limit]
+  );
+
+  // Reset pagination when query changes
+  useEffect(() => {
+    setPage(0);
+    setHasMore(true);
+    setDisplayedSongs([]);
   }, [debouncedQuery]);
 
+  // Fetch data when page or query changes
   useEffect(() => {
-    if (debouncedQuery.trim() === "") {
-      setIsSearching(false); // Reset searching state for empty query
-      fetchAllSongs();
-    } else {
-      searchSongs();
-    }
-  }, [debouncedQuery, searchSongs, fetchAllSongs]);
+    fetchSongs(page, debouncedQuery);
+  }, [page, debouncedQuery, fetchSongs]);
 
   const handleLikeChange = (songId: number, isLiked: boolean) => {
     setDisplayedSongs((prev) =>
@@ -242,6 +284,13 @@ export default function SongList() {
                 />
               </div>
             ))}
+          </div>
+          
+          {/* Lazy Loading Sentinel */}
+          <div ref={targetRef} className="py-4 flex justify-center">
+            {isLoadingMore && (
+              <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+            )}
           </div>
         </div>
       )}
