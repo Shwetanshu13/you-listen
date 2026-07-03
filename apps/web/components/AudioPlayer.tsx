@@ -37,6 +37,9 @@ export default function AudioPlayer() {
     volume: storeVolume,
     setVolume: setStoreVolume,
     queue,
+    autoplay,
+    setAutoplay,
+    updateCurrentSongLike,
   } = useAudioStore();
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -66,10 +69,11 @@ export default function AudioPlayer() {
     try {
       const response = await axios.get(`/likes/status/${currentSong.id}`);
       setIsLiked(response.data.liked);
+      updateCurrentSongLike(response.data.liked);
     } catch (error) {
       console.error("Error checking like status:", error);
     }
-  }, [currentSong?.id]);
+  }, [currentSong?.id, updateCurrentSongLike]);
 
   // Check if current song is liked
   useEffect(() => {
@@ -86,6 +90,7 @@ export default function AudioPlayer() {
         songId: currentSong.id,
       });
       setIsLiked(response.data.liked);
+      updateCurrentSongLike(response.data.liked);
     } catch (error) {
       console.error("Error toggling like:", error);
     }
@@ -133,13 +138,8 @@ export default function AudioPlayer() {
           .catch(console.error);
       }
 
-      // Handle repeat modes
-      if (repeat === "one") {
-        // Repeat current song - restart it
-        audio.currentTime = 0;
-        audio.play().catch(console.error);
-      } else {
-        // Auto-play next song for other modes
+      // Auto-play next song if not looping current
+      if (repeat !== "one") {
         playNext();
       }
     };
@@ -341,7 +341,7 @@ export default function AudioPlayer() {
           <div className="flex items-center gap-4 min-w-0 flex-1 justify-end">
             <button
               onClick={() => setShowQueue(!showQueue)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 hover:scale-110"
+              className="relative w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 hover:scale-110"
               title="Queue"
             >
               <ListMusic className="w-5 h-5" />
@@ -375,15 +375,29 @@ export default function AudioPlayer() {
           </div>
         </div>
 
-        <audio ref={audioRef} src={currentSong.fileUrl} preload="metadata" />
+        <audio ref={audioRef} src={currentSong.fileUrl} preload="metadata" loop={repeat === "one"} />
       </div>
 
       {/* Queue Panel */}
       {showQueue && (
-        <div className="fixed bottom-24 right-4 w-80 bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 p-4 z-40 max-h-96 overflow-y-auto">
-          <h3 className="text-white font-semibold mb-3">
-            Queue ({queue.length} songs)
-          </h3>
+        <div className="fixed bottom-24 right-4 w-80 bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 p-4 z-40 max-h-96 flex flex-col">
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <h3 className="text-white font-semibold">
+              Queue ({queue.length} songs)
+            </h3>
+            <button
+              onClick={() => setAutoplay(!autoplay)}
+              className={cn(
+                "text-xs px-2 py-1 rounded-full border transition-colors",
+                autoplay
+                  ? "bg-pink-500/20 border-pink-500 text-pink-500 hover:bg-pink-500/30"
+                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              Autoplay {autoplay ? "ON" : "OFF"}
+            </button>
+          </div>
+          <div className="overflow-y-auto flex-1">
           {queue.length > 0 ? (
             <div className="space-y-2">
               {queue.map((song, index) => (
@@ -413,6 +427,7 @@ export default function AudioPlayer() {
           ) : (
             <p className="text-gray-400 text-sm">No songs in queue</p>
           )}
+          </div>
         </div>
       )}
     </>

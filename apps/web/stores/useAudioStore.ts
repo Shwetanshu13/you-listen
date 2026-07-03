@@ -44,6 +44,7 @@ interface AudioState {
   addToQueue: (song: Song) => void;
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
+  updateCurrentSongLike: (isLiked: boolean) => void;
 }
 
 const shuffleArray = <T>(array: T[]): T[] => {
@@ -103,6 +104,7 @@ export const useAudioStore = create<AudioState>()(
           originalQueue: newOriginalQueue,
           currentIndex: newCurrentIndex,
           currentSong: newQueue[newCurrentIndex] || null,
+          isPlaying: true,
         });
       },
 
@@ -272,6 +274,15 @@ export const useAudioStore = create<AudioState>()(
           currentSong: null,
           isPlaying: false,
         }),
+
+      updateCurrentSongLike: (isLiked: boolean) => {
+        const state = get();
+        if (state.currentSong) {
+          set({
+            currentSong: { ...state.currentSong, isLiked },
+          });
+        }
+      },
     }),
     {
       name: "audio-store",

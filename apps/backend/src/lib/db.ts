@@ -8,7 +8,7 @@ import * as schema from "../db/schema";
 // dotenv.config({ path: "../../.env" });
 
 const dbUrl = process.env.DATABASE_URL!;
-console.log("database url on db.ts", dbUrl);
+// console.log("database url on db.ts", dbUrl);
 
 const pool = new Pool({
   connectionString: dbUrl,

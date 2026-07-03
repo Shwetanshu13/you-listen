@@ -227,6 +227,18 @@ export default function SongList() {
                   onLikeChange={handleLikeChange}
                   showAddToPlaylist={true}
                   onAddToPlaylist={handleAddToPlaylist}
+                  onPlay={(songId) => {
+                    const songs: Song[] = displayedSongs.map((s) => ({
+                      id: s.id,
+                      title: s.title,
+                      artist: s.artist || "Unknown",
+                      duration: s.duration || "0:00",
+                      fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${s.id}`,
+                      isLiked: s.isLiked,
+                    }));
+                    const songIndex = displayedSongs.findIndex((s) => s.id === songId);
+                    setQueue(songs, songIndex >= 0 ? songIndex : 0);
+                  }}
                 />
               </div>
             ))}

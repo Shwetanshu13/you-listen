@@ -9,6 +9,7 @@ import {
   Music,
   Plus,
   Play,
+  ListPlus,
 } from "lucide-react";
 import axios from "@/utils/axios";
 import { useAudioStore } from "@/stores/useAudioStore";
@@ -184,7 +185,6 @@ const Library = () => {
             </span>
             <button
               onClick={() => {
-                // Create a queue with just this song or all songs in the current list
                 const currentSongs =
                   activeTab === "liked"
                     ? likedSongs
@@ -202,9 +202,7 @@ const Library = () => {
                   title: s.title,
                   artist: s.artist,
                   duration: formatDuration(s.duration),
-                  fileUrl:
-                    s.fileUrl ||
-                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${s.id}`,
+                  fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${s.id}`,
                 }));
 
                 setQueue(audioSongs, songIndex >= 0 ? songIndex : 0);
@@ -212,6 +210,24 @@ const Library = () => {
               className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center hover:bg-pink-400 transition-all duration-300"
             >
               <Play className="w-4 h-4 text-white ml-0.5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const { addToQueue } = useAudioStore.getState();
+                addToQueue({
+                  id: song.id,
+                  title: song.title,
+                  artist: song.artist,
+                  duration: formatDuration(song.duration),
+                  fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
+                  isLiked: song.isLiked,
+                });
+              }}
+              className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-gray-600 transition-all duration-300"
+              title="Add to queue"
+            >
+              <ListPlus className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>

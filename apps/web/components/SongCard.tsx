@@ -1,7 +1,7 @@
 // components/SongCard.tsx
 "use client";
 
-import { Play, Pause, Heart, MoreVertical, Plus } from "lucide-react";
+import { Play, Pause, Heart, MoreVertical, Plus, ListPlus } from "lucide-react";
 import { useAudioStore } from "@/stores/useAudioStore";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -17,6 +17,7 @@ type SongCardProps = {
   onLikeChange?: (songId: number, isLiked: boolean) => void;
   showAddToPlaylist?: boolean;
   onAddToPlaylist?: (songId: number) => void;
+  onPlay?: (songId: number) => void;
 };
 
 export default function SongCard({
@@ -29,8 +30,9 @@ export default function SongCard({
   onLikeChange,
   showAddToPlaylist = false,
   onAddToPlaylist,
+  onPlay,
 }: SongCardProps) {
-  const { currentSong, isPlaying, setCurrentSong, setIsPlaying } =
+  const { currentSong, isPlaying, setCurrentSong, setIsPlaying, addToQueue } =
     useAudioStore();
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -42,12 +44,23 @@ export default function SongCard({
     setIsLiked(initialIsLiked);
   }, [initialIsLiked]);
 
+  // Sync like state from global store if this is the current song
+  useEffect(() => {
+    if (isCurrent && currentSong?.isLiked !== undefined) {
+      setIsLiked(currentSong.isLiked);
+    }
+  }, [isCurrent, currentSong?.isLiked]);
+
   const handlePlay = async () => {
     if (isCurrent) {
       setIsPlaying(!isPlaying);
     } else {
-      setCurrentSong({ id, title, artist, duration, fileUrl });
-      setIsPlaying(true);
+      if (onPlay) {
+        onPlay(id);
+      } else {
+        setCurrentSong({ id, title, artist, duration, fileUrl, isLiked });
+        setIsPlaying(true);
+      }
 
       // Add to play history
       try {
@@ -187,6 +200,17 @@ export default function SongCard({
               <Plus className="w-4 h-4" />
             </button>
           )}
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              addToQueue({ id, title, artist, duration, fileUrl, isLiked });
+            }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300"
+            title="Add to queue"
+          >
+            <ListPlus className="w-4 h-4" />
+          </button>
 
           <button
             onClick={(e) => e.stopPropagation()}

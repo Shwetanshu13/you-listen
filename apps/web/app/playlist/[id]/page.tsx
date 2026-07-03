@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Play, Shuffle, MoreVertical, Edit, Trash2, Music } from "lucide-react";
+import { Play, Shuffle, MoreVertical, Edit, Trash2, Music, ListPlus, Plus, Loader2 } from "lucide-react";
 import axios from "@/utils/axios";
 import { useAudioStore } from "@/stores/useAudioStore";
+import { SearchBar } from "@/components/SearchBar";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface Song {
   id: number;
@@ -37,6 +39,11 @@ export default function PlaylistDetail() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const [searchResults, setSearchResults] = useState<Song[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const { setQueue } = useAudioStore();
 
   const fetchPlaylist = useCallback(async () => {
@@ -58,6 +65,40 @@ export default function PlaylistDetail() {
     fetchPlaylist();
   }, [fetchPlaylist]);
 
+  useEffect(() => {
+    const searchSongs = async () => {
+      if (!debouncedQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        setIsSearching(true);
+        const { data } = await axios.post("/songs/search", { query: debouncedQuery });
+        // Filter out songs already in the playlist
+        if (playlist) {
+          const playlistSongIds = new Set(playlist.songs.map(s => s.id));
+          setSearchResults(data.filter((s: Song) => !playlistSongIds.has(s.id)));
+        } else {
+          setSearchResults(data);
+        }
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    searchSongs();
+  }, [debouncedQuery, playlist]);
+
+  const handleAddSongToPlaylist = async (songId: number) => {
+    try {
+      await axios.post(`/playlists/${playlistId}/songs`, { songId });
+      fetchPlaylist(); // Refresh the playlist to show the newly added song
+    } catch (error) {
+      console.error("Error adding song to playlist:", error);
+    }
+  };
+
   const handlePlayPlaylist = () => {
     if (!playlist || playlist.songs.length === 0) return;
 
@@ -66,7 +107,7 @@ export default function PlaylistDetail() {
       title: song.title,
       artist: song.artist,
       duration: formatDuration(song.duration),
-      fileUrl: song.fileUrl,
+      fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
     }));
 
     setQueue(songs, 0);
@@ -80,7 +121,7 @@ export default function PlaylistDetail() {
       title: song.title,
       artist: song.artist,
       duration: formatDuration(song.duration),
-      fileUrl: song.fileUrl,
+      fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
     }));
 
     // Shuffle the songs
@@ -153,11 +194,17 @@ export default function PlaylistDetail() {
   const getTotalDuration = () => {
     if (!playlist) return 0;
     return playlist.songs.reduce((total, song) => {
-      const duration =
-        typeof song.duration === "string"
-          ? parseInt(song.duration) || 0
-          : song.duration;
-      return total + duration;
+      let durationInSeconds = 0;
+      if (typeof song.duration === "string" && song.duration.includes(":")) {
+        const parts = song.duration.split(":");
+        durationInSeconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      } else {
+        durationInSeconds =
+          typeof song.duration === "string"
+            ? parseInt(song.duration) || 0
+            : song.duration;
+      }
+      return total + durationInSeconds;
     }, 0);
   };
 
@@ -341,7 +388,7 @@ export default function PlaylistDetail() {
                         title: s.title,
                         artist: s.artist,
                         duration: formatDuration(s.duration),
-                        fileUrl: s.fileUrl,
+                        fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${s.id}`,
                       }));
                       setQueue(songs, index);
                     }}
@@ -367,6 +414,22 @@ export default function PlaylistDetail() {
                       {formatDuration(song.duration)}
                     </span>
                     <button
+                      onClick={() => {
+                        const { addToQueue } = useAudioStore.getState();
+                        addToQueue({
+                          id: song.id,
+                          title: song.title,
+                          artist: song.artist,
+                          duration: formatDuration(song.duration),
+                          fileUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream/${song.id}`,
+                        });
+                      }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-gray-600/50 hover:text-white transition-all duration-300"
+                      title="Add to queue"
+                    >
+                      <ListPlus className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => handleRemoveSong(song.id)}
                       className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300"
                     >
@@ -383,9 +446,52 @@ export default function PlaylistDetail() {
             <h3 className="text-xl font-semibold text-gray-300 mb-2">
               No songs in this playlist
             </h3>
-            <p className="text-gray-500">Add some songs to get started!</p>
+            <p className="text-gray-500">Search below to add some songs!</p>
           </div>
         )}
+
+        {/* Add Songs Section */}
+        <div className="mt-8 bg-black/20 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+          <h3 className="text-xl font-bold mb-4">Add Songs</h3>
+          <SearchBar query={searchQuery} onChange={setSearchQuery} />
+          
+          <div className="mt-4">
+            {isSearching ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {searchResults.map((song) => (
+                  <div
+                    key={song.id}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded flex items-center justify-center">
+                      <Music className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-white truncate">
+                        {song.title}
+                      </h4>
+                      <p className="text-sm text-gray-400 truncate">
+                        {song.artist || "Unknown Artist"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleAddSongToPlaylist(song.id)}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white font-medium transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : searchQuery.trim() !== "" ? (
+              <p className="text-gray-400 text-center py-8">No results found.</p>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

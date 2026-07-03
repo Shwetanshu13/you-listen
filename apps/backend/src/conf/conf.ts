@@ -4,7 +4,7 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: "../../.env" });
 }
 
-console.log(process.env.NODE_ENV);
+// console.log(process.env.NODE_ENV);
 
 function getEnv(name: string): string {
   const value = process.env[name];
