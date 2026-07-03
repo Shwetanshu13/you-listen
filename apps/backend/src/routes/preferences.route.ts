@@ -1,11 +1,7 @@
 // routes/preferences.route.ts
 import { Router } from "express";
 import { verifyUser } from "../middleware/verifyUser";
-import {
-  getUserPreferences,
-  updateUserPreferences,
-  resetUserPreferences,
-} from "../controllers/preferences.controller";
+import { preferencesController } from "../modules/preferences/preferences.controller";
 
 const router = Router();
 
@@ -13,12 +9,12 @@ const router = Router();
 router.use(verifyUser);
 
 // GET /api/preferences - Get user preferences
-router.get("/", getUserPreferences);
+router.get("/", preferencesController.getUserPreferences);
 
 // PUT /api/preferences - Update user preferences
-router.put("/", updateUserPreferences);
+router.put("/", preferencesController.updateUserPreferences);
 
 // POST /api/preferences/reset - Reset preferences to defaults
-router.post("/reset", resetUserPreferences);
+router.post("/reset", preferencesController.resetUserPreferences);
 
 export default router;

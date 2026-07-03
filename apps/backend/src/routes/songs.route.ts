@@ -1,26 +1,18 @@
 // routes/songs.route.ts
 import express from "express";
-import {
-  getAllSongs,
-  getSongDetail,
-  searchSongs,
-  searchByTitleOrArtist,
-  ingestYouTubeSong,
-  deleteSong,
-  updateSong,
-} from "../controllers/songs.controller";
+import { songsController } from "../modules/songs/songs.controller";
 import { verifyUser } from "../middleware/verifyUser";
 import { verifyAdmin } from "../middleware/verifyAdmin";
 
 const router = express.Router();
 
-router.get("/all", verifyUser, getAllSongs);
-router.get("/:songId/getDetail", verifyUser, getSongDetail);
-router.get("/search/:q", verifyUser, searchSongs); // GET /songs/search/despacito
-router.post("/search", verifyUser, searchByTitleOrArtist); // POST { query: "..." }
+router.get("/all", verifyUser, songsController.getAllSongs);
+router.get("/:songId/getDetail", verifyUser, songsController.getSongDetail);
+router.get("/search/:q", verifyUser, songsController.searchSongs); // GET /songs/search/despacito
+router.post("/search", verifyUser, songsController.searchByTitleOrArtist); // POST { query: "..." }
 
-router.post("/ingest", verifyAdmin, ingestYouTubeSong);
-router.delete("/", verifyAdmin, deleteSong);
-router.patch("/:id", verifyAdmin, updateSong);
+router.post("/ingest", verifyAdmin, songsController.ingestYouTubeSong);
+router.delete("/", verifyAdmin, songsController.deleteSong);
+router.patch("/:id", verifyAdmin, songsController.updateSong);
 
 export default router;
