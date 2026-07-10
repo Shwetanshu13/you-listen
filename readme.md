@@ -6,44 +6,39 @@
 
 ## 🚀 Features
 
-- 🎧 Audio streaming with a modern player
-- 🔐 Auth with JWT & role-based access (admin, user)
-- ⬆️ Admin-only song uploads (MP3 or via YouTube)
-- 🔍 Search across uploaded songs
-- 📃 Playback history, duration tracking
-- 🧠 yt-dlp wrapper for YouTube download
-- 🔊 Spacebar to play/pause support
-- 🗂️ Monorepo with shared DB across frontend/backend
-- ☁️ Cloudflare R2 for audio storage (with signed URLs)
-- 🧱 Queue-based background download (BullMQ + Redis)
-- 📦 Dockerized backend with optional worker setup
-- ⚙️ Neon database integration (Postgres)
-- 🛡️ Rate limiting + basic security in production
+- 🎧 **Audio Streaming**: Modern, persistent player with shuffle, autoplay, and repeat controls.
+- 🔐 **Authentication**: JWT auth with role-based access (admin, user).
+- 🗂️ **Playlists & Likes**: Create custom playlists and like your favorite songs.
+- 📃 **Play History**: Track playback history and recently played songs.
+- ⚙️ **User Preferences**: Save volume, shuffle, repeat, and autoplay settings.
+- ⚡ **Performance Optimized**: Infinite scrolling on the frontend with a dual-layer caching strategy (Redis on backend, SessionStorage on client).
+- 🏗️ **Modular Backend**: Clean Layered Architecture (Repository-Service-Controller) for maintainability and scalability.
+- ⬆️ **Admin Uploads**: Upload songs via MP3 files or ingest directly from YouTube (yt-dlp + BullMQ).
+- ☁️ **Cloud Storage**: Cloudflare R2 for fast audio delivery with signed URLs.
 
 ---
 
 ## 🧱 Tech Stack
 
-| Frontend     | Backend         | Infra            | Storage / Queue |
-| ------------ | --------------- | ---------------- | --------------- |
-| Next.js 15   | Express + tRPC  | Railway / Vercel | Cloudflare R2   |
-| Tailwind CSS | BullMQ (worker) | Docker           | Redis           |
-| Zustand      | Drizzle ORM     | Neon Postgres    | yt-dlp (Python) |
+| Frontend     | Backend                 | Infra            | Storage / Queue |
+| ------------ | ----------------------- | ---------------- | --------------- |
+| Next.js 15   | Express.js              | Railway / Vercel | Cloudflare R2   |
+| Tailwind CSS | Layered Architecture    | Docker           | Redis           |
+| Zustand      | BullMQ (Worker)         | Neon Postgres    | yt-dlp (Python) |
+| Axios        | Drizzle ORM             | SessionStorage   | -               |
 
 ---
 
 ## 📁 Monorepo Structure
 
 ```
-
 you-listen/
 ├── apps/
 │   ├── web/        # Next.js frontend
-│   └── backend/    # Express + tRPC backend
+│   └── backend/    # Express modular backend (src/modules/*)
 ├── packages/
 │   └── db/         # Shared Drizzle ORM schema & config
 └── .env            # Environment variables (local dev)
-
 ```
 
 ---
@@ -64,42 +59,17 @@ Set these in Railway/Vercel environments. **No need for `dotenv` in production.*
 
 ---
 
-## 🐳 Docker (for backend & worker)
-
-### `apps/backend/Dockerfile`
-
-```Dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY . .
-
-RUN corepack enable && pnpm install --prod
-
-CMD ["pnpm", "run", "start"]
-```
-
-### `apps/backend/.dockerignore`
-
-```
-node_modules
-.env
-dist
-```
-
----
-
 ## 🚀 Deployment Guide
 
 ### Frontend (Next.js)
 
 - Deploy `apps/web` to **Vercel**
-- Set your API base URL to point to Railway backend (e.g. `https://you-listen-api.up.railway.app`)
+- Set `NEXT_PUBLIC_BACKEND_URL` to point to Railway backend (e.g., `https://you-listen-api.up.railway.app/api`)
 
-### Backend (Express + tRPC)
+### Backend (Express)
 
 - Deploy `apps/backend` to **Railway**
+- Backend uses a Node environment (no Docker required since the Dockerfile was removed for simpler Render/Railway node environments)
 - Add all required environment variables
 
 ### Worker (YouTube download)
@@ -124,15 +94,12 @@ pnpm --filter backend run worker
 
 ---
 
-## 🔮 v2 Roadmap
+## 🔮 Roadmap / Future Features
 
-- 📚 Library page with history
-- 🎵 Playlist creation & shuffle mode
-- 🔁 Autoplay next track
-- ❤️ Song likes
-- ⚡ Song caching (reduce R2 calls)
 - 📱 React Native app (via Expo)
 - 🧊 Rate limiting + PWA support
+- 📊 Admin Analytics Dashboard
+- 🎧 Collaborative Playlists
 
 ---
 
